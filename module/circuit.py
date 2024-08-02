@@ -49,10 +49,14 @@ class Circuit:
         self.circuit.measure(range(self.qubits), range(self.qubits))
 
     def run(self):
-        """Run the quantum circuit simulation and store the result."""
+        """Run the quantum circuit simulation and return the result."""
         simulator = Aer.get_backend('qasm_simulator')
         compiled_circuit = transpile(self.circuit, simulator)
+
+        # Directly run the compiled circuit on the simulator
         self.simulation_result = simulator.run(compiled_circuit, shots=self.shots).result()
+
+        return self.simulation_result  # Return the result
 
     def get_counts(self):
         """Return the counts from the last run simulation."""

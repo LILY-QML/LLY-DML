@@ -2,19 +2,17 @@
     "qubits": 5,
     "depth": 3,
     "learning_rate": 0.01,
-    "shots": 102400,
+    "shots": 1024,
     "max_iterations": 100,
-    "training_phases": [
-        [0.1, 0.2, 0.3, 0.4, 0.5],
-        [0.2, 0.3, 0.4, 0.5, 0.6],
-        [0.3, 0.4, 0.5, 0.6, 0.7],
-        [0.4, 0.5, 0.6, 0.7, 0.8],
-        [0.5, 0.6, 0.7, 0.8, 0.9],
-        [0.6, 0.7, 0.8, 0.9, 1.0],
-        [0.7, 0.8, 0.9, 1.0, 1.1],
-        [0.8, 0.9, 1.0, 1.1, 1.2],
-        [0.9, 1.0, 1.1, 1.2, 1.3]
-    ],
+    "population_size": 20,
+    "mutation_rate": 0.1,
+    "num_particles": 30,
+    "inertia": 0.5,
+    "cognitive": 1.5,
+    "social": 1.5,
+    "initial_temperature": 1.0,
+    "cooling_rate": 0.99,
+    "optimizers": ["Basic", "Momentum", "Adam", "Genetic", "PSO", "Bayesian", "SimulatedAnnealing"],
     "activation_matrices": [
         [
             [0.2, 0.3, 0.4, 0.5, 0.6],
@@ -49,15 +47,5 @@
             [1.1, 1.2, 1.3, 1.4, 1.5],
             [1.2, 1.3, 1.4, 1.5, 1.6]
         ]
-    ],
-    "target_states": ["11111", "00000", "10101"],
-    "optimizers": ["Basic", "Momentum", "Adam", "Genetic", "PSO", "Bayesian", "SimulatedAnnealing"],
-    "population_size": 20,  
-    "mutation_rate": 0.1,  
-    "num_particles": 30,  
-    "inertia": 0.5,  
-    "cognitive": 1.5, 
-    "social": 1.5,  
-    "initial_temperature": 1.0,  
-    "cooling_rate": 0.99  
+    ]
 }

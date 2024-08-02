@@ -216,14 +216,16 @@ class GeneticOptimizer(Optimizer):
         individual[mask] += mutation[mask]
         return individual
 
-
 class PSOOptimizer(Optimizer):
-    def __init__(self, num_particles=30, inertia=0.5, cognitive=1.5, social=1.5, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, circuit, target_state, learning_rate, max_iterations, num_particles=30, inertia=0.5, cognitive=1.5, social=1.5, **kwargs):
+        super().__init__(circuit, target_state, learning_rate, max_iterations)
         self.num_particles = num_particles
         self.inertia = inertia
         self.cognitive = cognitive
         self.social = social
+        # Ensure training phases are a NumPy array
+        self.circuit.training_phases = np.array(self.circuit.training_phases)
+        # Initialize particle positions and velocities
         self.particles = self._initialize_particles()
         self.velocities = np.zeros_like(self.particles)
         self.personal_best_positions = np.copy(self.particles)
@@ -232,11 +234,15 @@ class PSOOptimizer(Optimizer):
         self.global_best_loss = float('inf')
 
     def _initialize_particles(self):
+        """
+        Initialize particles with random variations around the training phases.
+        """
+        # Use np.random.normal with the shape of the NumPy array
         return np.array([self.circuit.training_phases + np.random.normal(0, self.learning_rate, self.circuit.training_phases.shape)
                          for _ in range(self.num_particles)])
 
     def optimize(self):
-        losses = []  # Track losses over iterations
+        losses = []  # Track global best loss over iterations
         for iteration in range(self.max_iterations):
             # Evaluate particles
             for i in range(self.num_particles):
@@ -248,8 +254,6 @@ class PSOOptimizer(Optimizer):
                     self.global_best_position = np.copy(self.particles[i])
                     self.global_best_loss = loss
 
-            losses.append(self.global_best_loss)
-
             # Update velocities and positions
             for i in range(self.num_particles):
                 cognitive_component = self.cognitive * np.random.rand() * (self.personal_best_positions[i] - self.particles[i])
@@ -257,6 +261,8 @@ class PSOOptimizer(Optimizer):
                 self.velocities[i] = self.inertia * self.velocities[i] + cognitive_component + social_component
                 self.particles[i] += self.velocities[i]
 
+            # Append the global best loss for this iteration
+            losses.append(self.global_best_loss)
             print(f"Iteration {iteration}, Best Loss: {self.global_best_loss}")
 
         self.circuit.training_phases = self.global_best_position.tolist()
@@ -264,16 +270,23 @@ class PSOOptimizer(Optimizer):
         return self.global_best_position.tolist(), losses
 
 class BayesianOptimizer(Optimizer):
-    def __init__(self, bounds, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, circuit, target_state, learning_rate, max_iterations, bounds):
+        super().__init__(circuit, target_state, learning_rate, max_iterations)
         self.bounds = bounds
 
     def optimize(self):
         def objective(phases):
-            self.circuit.training_phases = np.array(phases).reshape(self.circuit.training_phases.shape)
+            # Reshape to match the circuit's expected phase shape
+            phase_shape = np.array(self.circuit.training_phases).shape
+            self.circuit.training_phases = np.array(phases).reshape(phase_shape)
             self.circuit.run()
             counts = self.circuit.get_counts()
             return self.loss_function(counts)
+
+        # Ensure the bounds match the flat number of phases
+        phase_shape = np.array(self.circuit.training_phases).shape
+        flat_phases_size = np.prod(phase_shape)
+        self.bounds = [(0, 2 * np.pi)] * flat_phases_size
 
         result = gp_minimize(
             func=objective,
@@ -282,13 +295,14 @@ class BayesianOptimizer(Optimizer):
             random_state=42
         )
 
-        self.circuit.training_phases = np.array(result.x).reshape(self.circuit.training_phases.shape)
+        # Reshape result back into the training phases
+        self.circuit.training_phases = np.array(result.x).reshape(phase_shape)
         self.optimized_phases = self.circuit.training_phases.tolist()
         return self.optimized_phases, [result.fun] * self.max_iterations
 
 class SimulatedAnnealingOptimizer(Optimizer):
-    def __init__(self, initial_temperature=1.0, cooling_rate=0.99, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, circuit, target_state, learning_rate, max_iterations, initial_temperature=1.0, cooling_rate=0.99, **kwargs):
+        super().__init__(circuit, target_state, learning_rate, max_iterations)
         self.temperature = initial_temperature
         self.cooling_rate = cooling_rate
 
@@ -302,6 +316,7 @@ class SimulatedAnnealingOptimizer(Optimizer):
             new_phases = self.update_phases(current_phases)
             new_loss = self.evaluate(new_phases)
 
+            # Accept new phases with probability based on temperature
             if new_loss < best_loss or np.random.rand() < np.exp((best_loss - new_loss) / self.temperature):
                 current_phases = new_phases
                 if new_loss < best_loss:
