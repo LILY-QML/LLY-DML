@@ -1,5 +1,5 @@
 qiskit==0.45.0
-qiskit-aer==0.11.3
+qiskit-aer==0.14.2  
 matplotlib==3.7.1
 seaborn==0.12.2
 pandas==2.0.3
