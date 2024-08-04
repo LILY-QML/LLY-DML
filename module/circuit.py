@@ -50,7 +50,7 @@ class Circuit:
 
     def run(self):
         """Run the quantum circuit simulation and return the result."""
-        simulator = Aer.get_backend('qasm_simulator')
+        simulator = Aer.get_backend('aer_simulator')  # Updated to use AerSimulator
         compiled_circuit = transpile(self.circuit, simulator)
 
         # Directly run the compiled circuit on the simulator
