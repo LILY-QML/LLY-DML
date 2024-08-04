@@ -1,12 +1,10 @@
 name: Quantum CI/CD Pipeline
 
+# Dieser Workflow wird immer dann ausgeführt, wenn Code auf den 'main'-Branch gepusht wird
 on:
   push:
     branches:
-      - main
-  pull_request:
-    branches:
-      - main
+      - main  # Sie können diesen Branch-Namen ändern, wenn Sie einen anderen Branch verwenden möchten
 
 jobs:
   # Job zum Testen des Codes
@@ -20,7 +18,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'  # Python-Version aktualisiert auf 3.9
+          python-version: '3.9'  # Python-Version, die für Ihr Projekt erforderlich ist
 
       - name: Install dependencies
         run: |
@@ -49,7 +47,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'  # Python-Version aktualisiert auf 3.9
+          python-version: '3.9'
 
       - name: Install dependencies
         run: |
@@ -78,7 +76,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'  # Python-Version aktualisiert auf 3.9
+          python-version: '3.9'
 
       - name: Install Sphinx
         run: |
@@ -109,7 +107,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'  # Python-Version aktualisiert auf 3.9
+          python-version: '3.9'
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
