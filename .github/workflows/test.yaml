@@ -84,10 +84,8 @@ jobs:
 
       - name: Build Documentation
         run: |
-          mkdir -p docs/source  # Create the directory if it doesn't exist
           cd docs
-          sphinx-apidoc -o source ../module  # Generate RST files from the module
-          sphinx-build -b html source _build/html  # Build the HTML docs
+          make html  # Use Makefile to build docs
 
       - name: Deploy to GitHub Pages
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/save'

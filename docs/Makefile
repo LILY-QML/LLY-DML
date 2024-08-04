@@ -1,14 +1,20 @@
 # Makefile for Sphinx documentation
 
-.PHONY: help clean html
+SPHINXOPTS    =
+SPHINXBUILD   = sphinx-build
+SPHINXPROJ    = LLY-DML
+SOURCEDIR     = source
+BUILDDIR      = _build
+
+.PHONY: help Makefile
 
 help:
-	@echo "Please use 'make <target>' where <target> is one of"
-	@echo "  html    to make standalone HTML files"
-	@echo "  clean   to clean up build files"
-
-clean:
-	rm -rf _build
+	@echo "  make html    to build the HTML documentation"
 
 html:
-	sphinx-build -b html . _build/html
+	$(SPHINXBUILD) -b html $(SOURCEDIR) $(BUILDDIR)/html $(SPHINXOPTS)
+	@echo
+	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
+
+clean:
+	rm -rf $(BUILDDIR)/*

@@ -1,5 +1,7 @@
 import os
 import sys
+
+# Add the module path to sys.path to ensure modules can be imported
 sys.path.insert(0, os.path.abspath('../../module'))
 
 # -- Project information -----------------------------------------------------
