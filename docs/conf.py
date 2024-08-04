@@ -1,26 +1,23 @@
-# conf.py
-
 import os
 import sys
-
-# Include the project's module path
 sys.path.insert(0, os.path.abspath('../../module'))
 
-# Project information
+# -- Project information -----------------------------------------------------
 project = 'LLY-DML'
 author = 'Your Name'
+release = '1.0'
 version = '1.0'
 
-# General configuration
+# -- General configuration ---------------------------------------------------
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
-    'sphinx.ext.napoleon',  # For Google or NumPy style docstrings
+    'sphinx.ext.napoleon',
 ]
 
 templates_path = ['_templates']
 exclude_patterns = []
 
-# HTML output options
+# -- Options for HTML output -------------------------------------------------
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
