@@ -74,7 +74,6 @@ class TestQuantumCircuit(unittest.TestCase):
 
 class TestOptimizers(unittest.TestCase):
     def setUp(self):
-        # Set up a circuit for optimizer tests
         self.qubits = 5
         self.depth = 3
         self.shots = 1024
@@ -90,6 +89,22 @@ class TestOptimizers(unittest.TestCase):
         self.target_state = max(self.circuit.run().get_counts(), key=lambda x: self.circuit.get_counts()[x])
         self.learning_rate = 0.01
         self.max_iterations = 10
+
+    def test_qng_optimizer(self):
+        # Correct dimension for the Fisher matrix
+        fisher_information_matrix = np.eye(self.depth * self.qubits * 3)  # Ensure correct shape
+
+        optimizer = QuantumNaturalGradientOptimizer(
+            circuit=self.circuit,
+            target_state=self.target_state,
+            learning_rate=self.learning_rate,
+            max_iterations=self.max_iterations,
+            fisher_information_matrix=fisher_information_matrix,
+        )
+        optimized_phases, losses = optimizer.optimize()
+        self.assertIsInstance(optimized_phases, list)
+        self.assertIsInstance(losses, list)
+        self.assertEqual(len(losses), self.max_iterations)
 
     def test_gradient_descent_optimizer(self):
         optimizer = Optimizer(
@@ -171,20 +186,6 @@ class TestOptimizers(unittest.TestCase):
             target_state=self.target_state,
             learning_rate=self.learning_rate,
             max_iterations=self.max_iterations,
-        )
-        optimized_phases, losses = optimizer.optimize()
-        self.assertIsInstance(optimized_phases, list)
-        self.assertIsInstance(losses, list)
-        self.assertEqual(len(losses), self.max_iterations)
-
-    def test_qng_optimizer(self):
-        fisher_information_matrix = np.eye(self.qubits * self.depth)
-        optimizer = QuantumNaturalGradientOptimizer(
-            circuit=self.circuit,
-            target_state=self.target_state,
-            learning_rate=self.learning_rate,
-            max_iterations=self.max_iterations,
-            fisher_information_matrix=fisher_information_matrix,
         )
         optimized_phases, losses = optimizer.optimize()
         self.assertIsInstance(optimized_phases, list)

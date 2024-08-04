@@ -108,6 +108,27 @@ class Optimizer:
         ax.set_title(title, fontsize=16)
         plt.show()
 
+class QuantumNaturalGradientOptimizer(Optimizer):
+    def __init__(self, circuit, target_state, learning_rate, max_iterations, fisher_information_matrix):
+        super().__init__(circuit, target_state, learning_rate, max_iterations)
+        self.fisher_information_matrix = fisher_information_matrix
+
+    def update_phases(self, current_phases):
+        gradient = np.random.normal(0, self.learning_rate, current_phases.shape)
+
+        # Debugging dimension output
+        fisher_shape = self.fisher_information_matrix.shape
+        gradient_shape = gradient.flatten().shape
+
+        # Ensure dimensions match for multiplication
+        if fisher_shape[0] != gradient_shape[0] or fisher_shape[1] != gradient_shape[0]:
+            raise ValueError(f"Fisher information matrix ({fisher_shape}) and gradient ({gradient_shape}) dimensions do not match.")
+
+        # Reshape gradient for proper dimension matching
+        qng_step = np.linalg.inv(self.fisher_information_matrix).dot(gradient.flatten())
+        new_phases = current_phases.flatten() - self.learning_rate * qng_step
+        return new_phases.reshape(current_phases.shape)
+
 class OptimizerWithMomentum(Optimizer):
     def __init__(self, *args, momentum=0.9, **kwargs):
         super().__init__(*args, **kwargs)
@@ -330,26 +351,3 @@ class SimulatedAnnealingOptimizer(Optimizer):
         self.circuit.training_phases = best_phases.tolist()
         self.optimized_phases = best_phases.tolist()
         return best_phases.tolist(), losses
-
-class QuantumNaturalGradientOptimizer(Optimizer):
-    def __init__(self, circuit, target_state, learning_rate, max_iterations, fisher_information_matrix):
-        super().__init__(circuit, target_state, learning_rate, max_iterations)
-        self.fisher_information_matrix = fisher_information_matrix
-
-    def update_phases(self, current_phases):
-        gradient = np.random.normal(0, self.learning_rate, current_phases.shape)
-
-        # Ensure dimensions match
-        fisher_shape = self.fisher_information_matrix.shape
-        gradient_shape = gradient.shape
-
-        # Debug output
-        print(f"Fisher matrix shape: {fisher_shape}")
-        print(f"Gradient shape: {gradient_shape}")
-
-        if fisher_shape[0] != gradient_shape[0] or fisher_shape[1] != gradient_shape[1]:
-            raise ValueError("Fisher information matrix and gradient dimensions do not match.")
-
-        qng_step = np.linalg.inv(self.fisher_information_matrix).dot(gradient)
-        new_phases = current_phases - self.learning_rate * qng_step
-        return new_phases
