@@ -4,6 +4,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from qiskit.visualization import plot_histogram, circuit_drawer
+from bus import *
+
 
 from module.circuit import Circuit
 from module.optimizer import (
@@ -16,6 +18,17 @@ from module.optimizer import (
     SimulatedAnnealingOptimizer
 )
 from module.visual import Visual
+
+
+# Quplexity ARM64 Assembly Hadamard Gate Test:
+input_matrix = np.array([0.0, 1.0], dtype=np.float64).reshape(2)
+output_matrix = np.zeros(2, dtype=np.float64)
+lib.gills_hadamard(input_matrix.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), output_matrix.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
+output_matrix = output_matrix.reshape((2, 1))
+print("Output Matrix after Hadamard transformation:")
+print(output_matrix)
+##END
+
 
 # Function to read configuration from JSON
 def load_config(json_path):
