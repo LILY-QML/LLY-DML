@@ -1,6 +1,14 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+
+# module/optimizer.py
+
+import numpy as np
+import copy
+import logging
+import json
+from .circuit import Circuit
 from skopt import gp_minimize
 
 class Optimizer:
@@ -351,3 +359,218 @@ class SimulatedAnnealingOptimizer(Optimizer):
         self.circuit.training_phases = best_phases.tolist()
         self.optimized_phases = best_phases.tolist()
         return best_phases.tolist(), losses
+
+
+
+class OptimizerManager:
+    def __init__(self, reader, data, train_file, logger):
+        self.reader = reader
+        self.data = data
+        self.train_file = train_file
+        self.logger = logger
+
+        # Extrahiere Aktivierungsmatrizen und Trainingsmatrix
+        self.activation_labels = list(self.reader.train_data.get('converted_activation_matrices', {}).keys())
+        self.training_matrix = self.reader.train_data.get('training_matrix', [])
+        self.qubits = self.reader.data.get('qubits', 8)
+        self.depth = self.reader.data.get('depth', 8)
+
+        # Überprüfen, ob die Trainingsmatrix geladen wurde
+        if not self.training_matrix:
+            self.logger.error("Keine Trainingsmatrix in train.json gefunden.")
+            raise ValueError("Keine Trainingsmatrix in train.json gefunden.")
+
+        # Konvertiere die Trainingsmatrix in ein NumPy-Array und transponiere sie
+        self.training_phases = np.array(self.training_matrix)
+        self.logger.debug(f"Geladene Trainingsmatrix hat die Form: {self.training_phases.shape}")
+
+        # Transponiere die Trainingsphasen
+        self.training_phases = self.training_phases.T
+        self.logger.debug(f"Transponierte Trainingsphasen haben die Form: {self.training_phases.shape}")
+
+        # Lade die Aktivierungsphasen
+        self.activation_phases_dict = self.reader.train_data.get('converted_activation_matrices', {})
+        for label, activation_phases in self.activation_phases_dict.items():
+            activation_array = np.array(activation_phases)
+            self.activation_phases_dict[label] = activation_array
+            self.logger.debug(f"Aktivierungsphasen für {label} haben die Form: {activation_array.shape}")
+
+        # Überprüfe die Anzahl der Zeilen
+        expected_rows = self.depth * 3
+        if self.training_phases.shape[0] != expected_rows:
+            error_msg = f"Trainingsphasen haben {self.training_phases.shape[0]} Zeilen, erwartet: {expected_rows}."
+            self.logger.error(error_msg)
+            raise ValueError(error_msg)
+
+        for label, activation_array in self.activation_phases_dict.items():
+            if activation_array.shape[0] != expected_rows:
+                error_msg = f"Aktivierungsphasen für {label} haben {activation_array.shape[0]} Zeilen, erwartet: {expected_rows}."
+                self.logger.error(error_msg)
+                raise ValueError(error_msg)
+
+        # Initialisiere die Zielzustände
+        self.assign_unique_target_states()
+        # Initialisiere die Optimierer
+        self.initialize_optimizers()
+
+    def assign_unique_target_states(self):
+        """
+        Weist jeder Aktivierungsmatrix einen eindeutigen Zielzustand zu.
+        """
+        self.target_states = {}
+        used_states = set()
+
+        for label in self.activation_labels:
+            # Erstelle einen Circuit mit der aktuellen Aktivierungsmatrix
+            circuit = Circuit(
+                qubits=self.qubits,
+                depth=self.depth,
+                training_phases=copy.deepcopy(self.training_matrix),
+                activation_phases=self.reader.train_data['converted_activation_matrices'][label],
+                shots=self.reader.data.get('shots', 1024)
+            )
+            circuit.run()
+            counts = circuit.get_counts()
+
+            if not counts:
+                self.logger.error(f"Keine Messergebnisse für Aktivierungsmatrix '{label}' erhalten.")
+                raise ValueError(f"Keine Messergebnisse für Aktivierungsmatrix '{label}' erhalten.")
+
+            # Ermittle den Zustand mit der höchsten Wahrscheinlichkeit
+            sorted_counts = sorted(counts.items(), key=lambda item: item[1], reverse=True)
+            target_state = sorted_counts[0][0]
+
+            # Stelle sicher, dass der Zielzustand eindeutig ist
+            if target_state in used_states:
+                for state, _ in sorted_counts[1:]:
+                    if state not in used_states:
+                        target_state = state
+                        break
+                else:
+                    self.logger.error(f"Keine eindeutigen Zielzustände für '{label}' gefunden.")
+                    raise ValueError(f"Keine eindeutigen Zielzustände für '{label}' gefunden.")
+
+            self.target_states[label] = target_state
+            used_states.add(target_state)
+            self.logger.info(f"Zielzustand für '{label}': {target_state}")
+
+    def initialize_optimizers(self):
+        """
+        Initialisiert die Optimierer basierend auf den in data.json definierten Optimierern.
+        Jeder Optimierer erhält eine Kopie des initialen Trainingsschaltkreises.
+        """
+        self.optimizer_instances = []
+        optimizers_config = self.reader.data.get('optimizers', {})
+
+        if isinstance(optimizers_config, dict):
+            optimizer_names = list(optimizers_config.keys())
+        elif isinstance(optimizers_config, list):
+            optimizer_names = optimizers_config
+        else:
+            self.logger.error("Unbekanntes Format für Optimizer in data.json.")
+            raise ValueError("Unbekanntes Format für Optimizer in data.json.")
+
+        for optimizer_name in optimizer_names:
+            optimizer_class = self.get_optimizer_class(optimizer_name)
+            if optimizer_class is None:
+                self.logger.warning(f"Optimizer '{optimizer_name}' ist unbekannt und wird übersprungen.")
+                continue
+
+            for label in self.activation_labels:
+                target_state = self.target_states[label]
+                # Initialisiere den Circuit mit der initialen Trainingsmatrix und der aktuellen Aktivierungsmatrix
+                initial_circuit = Circuit(
+                    qubits=self.qubits,
+                    depth=self.depth,
+                    training_phases=copy.deepcopy(self.training_matrix),
+                    activation_phases=self.reader.train_data['converted_activation_matrices'][label],
+                    shots=self.reader.data.get('shots', 1024)
+                )
+                # Initialisiere den Optimierer
+                optimizer_instance = optimizer_class(
+                    circuit=initial_circuit,
+                    target_state=target_state,
+                    learning_rate=self.reader.data.get('learning_rate', 0.01),
+                    max_iterations=self.reader.data.get('max_iterations', 100),
+                    # Weitere Parameter je nach Optimierer hinzufügen
+                )
+                self.optimizer_instances.append((optimizer_name, label, optimizer_instance))
+                self.logger.info(f"Optimizer '{optimizer_name}' für '{label}' initialisiert.")
+
+    def get_optimizer_class(self, name):
+        """
+        Mappt den Optimierernamen auf die entsprechende Klasse.
+
+        :param name: Name des Optimierers
+        :return: Optimierer-Klasse
+        """
+        mapping = {
+            'Basic': Optimizer,
+            'Momentum': OptimizerWithMomentum,
+            'Adam': AdamOptimizer,
+            'Genetic': GeneticOptimizer,
+            'PSO': PSOOptimizer,
+            'Bayesian': BayesianOptimizer,
+            'SimulatedAnnealing': SimulatedAnnealingOptimizer,
+            'QuantumNaturalGradient': QuantumNaturalGradientOptimizer
+            # Weitere Mapping hinzufügen, falls notwendig
+        }
+        return mapping.get(name)
+
+    def train_all_optimizers(self):
+        """
+        Führt das Training aller Optimierer durch. Jeder Optimierer optimiert seine zugewiesene Aktivierungsmatrix.
+        Die Trainingsschritte werden geloggt und in train.json gespeichert.
+        """
+        for optimizer_name, label, optimizer in self.optimizer_instances:
+            self.logger.info(f"Starte Training für Optimizer: {optimizer_name}, Aktivierungsmatrix: {label}")
+            print(f"Starte Training für Optimizer: {optimizer_name}, Aktivierungsmatrix: {label}")
+            try:
+                optimized_phases, losses = optimizer.optimize()
+                # Logge Optimierungsergebnisse
+                self.logger.info(f"Optimierung abgeschlossen für '{label}' mit Optimizer '{optimizer_name}'. Letzter Verlust: {losses[-1]}")
+                print(f"Optimierung abgeschlossen für '{label}' mit Optimizer '{optimizer_name}'. Letzter Verlust: {losses[-1]}")
+
+                # Schreibe die Ergebnisse in train.json
+                self.write_optimization_to_train_json(
+                    optimizer_name=optimizer_name,
+                    activation_label=label,
+                    optimized_phases=optimized_phases,
+                    losses=losses
+                )
+            except Exception as e:
+                self.logger.error(f"Fehler beim Trainieren von Optimizer '{optimizer_name}' für '{label}': {e}")
+                print(f"Fehler beim Trainieren von Optimizer '{optimizer_name}' für '{label}': {e}")
+
+        self.logger.info("Alle Optimierer wurden erfolgreich trainiert.")
+        print("Alle Optimierer wurden erfolgreich trainiert.")
+
+    def write_optimization_to_train_json(self, optimizer_name, label, optimized_phases, losses):
+        """
+        Schreibt die Optimierungsschritte in die train.json-Datei.
+
+        :param optimizer_name: Name des Optimierers
+        :param label: Label der Aktivierungsmatrix
+        :param optimized_phases: Optimierte Trainingsphasen
+        :param losses: Liste der Verlustwerte über die Iterationen
+        """
+        optimization_entry = {
+            "optimizer": optimizer_name,
+            "activation_matrix": label,
+            "optimized_phases": optimized_phases,
+            "losses": losses
+        }
+
+        # Füge die Optimierungsschritte unter 'optimizer_steps' hinzu
+        if 'optimizer_steps' not in self.reader.train_data:
+            self.reader.train_data['optimizer_steps'] = []
+        self.reader.train_data['optimizer_steps'].append(optimization_entry)
+
+        # Schreibe zurück in train.json
+        try:
+            with open(self.train_file, 'w') as f:
+                json.dump(self.reader.train_data, f, indent=4)
+            self.logger.info(f"Optimierungsschritt für '{optimizer_name}' und '{label}' in train.json gespeichert.")
+        except Exception as e:
+            self.logger.error(f"Fehler beim Schreiben der Optimierungsschritte in train.json: {e}")
+            raise
