@@ -1,158 +1,153 @@
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# Project: LILY-QML
+# Version: 1.6 LLY-DML
+# Author: Leon Kaiser
+# Contact: info@lilyqml.de
+# Website: www.lilyqml.de
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 import numpy as np
 
 class Data:
-    def __init__(self, qubits, depth, activation_matrices):
+    def __init__(self, qubits, depth, activation_matrices, labels=None, logger=None):
         """
-        Initialisiert die Data-Klasse mit qubits, depth und activation_matrices.
+        Initializes the Data class with qubits, depth, activation_matrices, and optional labels and logger.
 
-        :param qubits: int, Anzahl der Qubits, entspricht der Anzahl der Zeilen in den Matrizen.
-        :param depth: int, Tiefe, entspricht der Anzahl der Spalten in den Matrizen.
-        :param activation_matrices: list, enthält die dreidimensionalen Aktivierungsmatrizen.
-        :raises ValueError: Wenn keine Matrizen übergeben werden oder Dimensionen nicht übereinstimmen.
-        :raises TypeError: Wenn die Matrizen nicht vom Typ NumPy-Array sind oder die Struktur nicht korrekt ist.
+        :param qubits: int, Number of qubits, corresponds to the number of rows in the matrices.
+        :param depth: int, Depth, corresponds to the number of columns in the matrices.
+        :param activation_matrices: list, Contains the three-dimensional activation matrices.
+        :param labels: list, Optional list of labels for the activation matrices.
+        :param logger: logging.Logger, Optional logger for logging messages.
+        :raises ValueError: If no matrices are provided or dimensions do not match.
+        :raises TypeError: If the matrices are not NumPy arrays or have incorrect structure.
         """
         if not activation_matrices:
-            raise ValueError("Es muss mindestens eine Aktivierungsmatrix übergeben werden.")
+            raise ValueError("At least one activation matrix must be provided.")
 
-        self.qubits = qubits
-        self.depth = depth
-        self.activation_matrices = []
-        self.labels = []
+        self.qubits = qubits  # Number of qubits, which determines matrix rows
+        self.depth = depth  # Depth, corresponding to matrix columns
+        self.activation_matrices = []  # List to store activation matrices
+        self.labels = labels if labels else []  # Optional labels for the matrices
+        self.logger = logger  # Optional logger for debugging purposes
 
-        for idx, matrix in enumerate(activation_matrices, start=1):
-            matrix_label = f"matrix{idx}"
+        for idx, matrix in enumerate(activation_matrices):
+            # Assign default labels if none are provided
+            matrix_label = self.labels[idx] if idx < len(self.labels) else f"matrix{idx+1}"
 
             if not isinstance(matrix, np.ndarray):
-                raise TypeError(f"Die {matrix_label} ist kein NumPy-Array.")
+                raise TypeError(f"The {matrix_label} is not a NumPy array.")
 
             if matrix.ndim != 3:
-                raise ValueError(f"Die {matrix_label} ist nicht dreidimensional. Sie hat {matrix.ndim} Dimension(en).")
+                raise ValueError(f"The {matrix_label} is not three-dimensional. It has {matrix.ndim} dimension(s).")
 
-            # Überprüfen der Dimensionen: (layers, qubits, depth)
+            # Check if matrix dimensions match the required qubits and depth
             layers, matrix_qubits, matrix_depth = matrix.shape
 
             if matrix_qubits != qubits:
-                raise ValueError(
-                    f"Die {matrix_label} hat {matrix_qubits} Zeilen, erwartet: {qubits} (qubits)."
-                )
+                raise ValueError(f"The {matrix_label} has {matrix_qubits} rows, expected: {qubits} (qubits).")
 
             if matrix_depth != depth:
-                raise ValueError(
-                    f"Die {matrix_label} hat {matrix_depth} Spalten, erwartet: {depth} (depth)."
-                )
+                raise ValueError(f"The {matrix_label} has {matrix_depth} columns, expected: {depth} (depth).")
 
             self.activation_matrices.append(matrix)
             self.labels.append(matrix_label)
 
-        # Sicherstellen, dass alle Matrizen die gleiche Form haben (Layers, Qubits, Depth)
+        # Ensure all matrices have the same dimensions
         first_shape = self.activation_matrices[0].shape
         for matrix in self.activation_matrices:
             if matrix.shape != first_shape:
-                raise ValueError("Nicht alle Aktivierungsmatrizen haben dieselben Dimensionen.")
+                raise ValueError("Not all activation matrices have the same dimensions.")
 
-        self.shape = first_shape  # Alle Matrizen haben die gleiche Form
+        self.shape = first_shape  # Store the common shape of the matrices
 
     def get_dimensions(self):
         """
-        Gibt die Dimensionen jeder Aktivierungsmatrix zurück.
+        Returns the dimensions of each activation matrix.
 
-        :return: Eine Liste von Tupeln, die die Dimensionen jeder Matrix darstellen.
+        :return: A list of tuples representing the dimensions of each matrix.
         """
         return [matrix.shape for matrix in self.activation_matrices]
 
     def get_number_of_matrices(self):
         """
-        Gibt die Anzahl der übergebenen Aktivierungsmatrizen zurück.
+        Returns the number of activation matrices provided.
 
-        :return: Anzahl der Matrizen.
+        :return: Number of matrices.
         """
         return len(self.activation_matrices)
 
     def summary(self):
         """
-        Gibt eine Zusammenfassung der Aktivierungsmatrizen aus, einschließlich der Anzahl und Dimensionen.
+        Provides a summary of the activation matrices, including the number and dimensions.
 
-        :return: Eine formatierte Zeichenkette mit der Zusammenfassung.
+        :return: A formatted string with the summary.
         """
-        summary_str = f"Anzahl der Activation Matrizen: {self.get_number_of_matrices()}\n"
+        summary_str = f"Number of Activation Matrices: {self.get_number_of_matrices()}\n"
         for label, shape in zip(self.labels, self.get_dimensions()):
-            summary_str += f"{label} Dimensionen: {shape}\n"
+            summary_str += f"{label} Dimensions: {shape}\n"
         summary_str += f"Qubits: {self.qubits}, Depth: {self.depth}\n"
         return summary_str
 
     def create_training_matrix(self):
         """
-        Erstellt eine neue 2D-Matrix mit randomisierten Werten.
-        Die Dimensionen sind (qubits, 3 * depth).
+        Creates a new 2D matrix with randomized values.
+        The dimensions are (qubits, 3 * depth).
 
-        :return: Eine neue 2D-NumPy-Matrix mit der Form (qubits, 3 * depth).
-        :raises ValueError: Wenn die resultierende Trainingsmatrix nicht die erwarteten Dimensionen hat.
+        :return: A new 2D NumPy matrix with shape (qubits, 3 * depth).
+        :raises ValueError: If the resulting training matrix does not have the expected dimensions.
         """
         training_matrix = np.random.rand(self.qubits, 3 * self.depth)
         if training_matrix.shape != (self.qubits, 3 * self.depth):
-            raise ValueError(
-                f"Die Trainingsmatrix hat die Dimensionen {training_matrix.shape}, erwartet: ({self.qubits}, {3 * self.depth})."
-            )
+            raise ValueError(f"The training matrix has dimensions {training_matrix.shape}, expected: ({self.qubits}, {3 * self.depth}).")
         return training_matrix
 
     def validate_training_matrix(self, training_matrix):
         """
-        Validiert, ob die Trainingsmatrix die erwarteten Dimensionen hat.
+        Validates that the training matrix has the expected dimensions.
 
-        :param training_matrix: NumPy-Array, die zu validierende Trainingsmatrix.
-        :raises ValueError: Wenn die Trainingsmatrix nicht die erwarteten Dimensionen hat.
+        :param training_matrix: NumPy array, the training matrix to validate.
+        :raises ValueError: If the training matrix does not have the expected dimensions.
         """
         expected_shape = (self.qubits, 3 * self.depth)
         if training_matrix.shape != expected_shape:
-            raise ValueError(
-                f"Die Trainingsmatrix hat die Dimensionen {training_matrix.shape}, erwartet: {expected_shape}."
-            )
+            raise ValueError(f"The training matrix has dimensions {training_matrix.shape}, expected: {expected_shape}.")
 
     def convert_activation_matrices_to_2d(self):
         """
-        Konvertiert alle dreidimensionalen Aktivierungsmatrizen in zweidimensionale Matrizen.
-        Dabei werden die Schichten der 3D-Matrix hintereinander gesetzt, sodass die resultierende
-        Matrix die Form (depth * 3, qubits) hat.
+        Converts all three-dimensional activation matrices into two-dimensional matrices.
+        The layers of the 3D matrix are concatenated, resulting in a matrix of shape (qubits, depth * layers).
         """
         converted_matrices = {}
         for label, matrix in zip(self.labels, self.activation_matrices):
-            # Keine Transposition notwendig
-            layers, qubits, depth = matrix.shape  # Erwartet (3, 9, 8)
-            expected_rows = self.depth * 3  # 8 * 3 = 24
-            actual_rows = layers * depth  # 3 * 8 = 24
-
-            if actual_rows != expected_rows:
-                raise ValueError(
-                    f"The {label} has {actual_rows} rows after reshaping, expected: {expected_rows} (depth * 3)."
-                )
-
             try:
-                # Reshape zu (layers * depth, qubits) => (24, 9)
-                converted_matrix = matrix.reshape(layers * self.depth, self.qubits).tolist()
-                converted_matrices[label] = converted_matrix
-            except ValueError as e:
-                raise ValueError(f"Error reshaping {label}: {e}")
+                # Reshape to (qubits, layers * depth)
+                converted_matrix = matrix.transpose(1, 0, 2).reshape(self.qubits, -1)
+                converted_matrices[label] = converted_matrix.tolist()
+                if self.logger:
+                    self.logger.debug(f"{label} converted matrix shape: {converted_matrix.shape}")
+            except Exception as e:
+                if self.logger:
+                    self.logger.error(f"Error converting {label}: {e}")
+                raise
         return converted_matrices
-
-
 
     def get_matrix_names(self):
         """
-        Gibt die Namen aller Aktivierungsmatrizen zurück.
+        Returns the names of all activation matrices.
 
-        :return: Eine Liste von Labels der Matrizen.
+        :return: A list of labels of the matrices.
         """
         return self.labels.copy()
 
     def get_matrix_by_name(self, name):
         """
-        Gibt die dreidimensionale Aktivierungsmatrix mit dem angegebenen Namen zurück.
+        Returns the three-dimensional activation matrix with the specified name.
 
-        :param name: str, der Name der gewünschten Matrix.
-        :return: NumPy-Array der entsprechenden dreidimensionalen Matrix.
-        :raises KeyError: Wenn der angegebene Name nicht existiert.
+        :param name: str, the name of the desired matrix.
+        :return: NumPy array of the corresponding three-dimensional matrix.
+        :raises KeyError: If the specified name does not exist.
         """
         if name not in self.labels:
-            raise KeyError(f"Matrix mit dem Namen '{name}' existiert nicht.")
+            raise KeyError(f"Matrix with the name '{name}' does not exist.")
         index = self.labels.index(name)
         return self.activation_matrices[index]

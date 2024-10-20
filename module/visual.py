@@ -1,3 +1,5 @@
+# visual.py
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -240,7 +242,6 @@ class InitializedDataSection:
         story.append(Spacer(1, 20))
 
         # No PageBreak here to keep all subsections on the same page
-
 
     def add_input_data_table(self, story):
         # Input Data Table with columns: Number of Input Matrices, Columns, Rows
@@ -643,7 +644,6 @@ class FinalResultsSection:
         story.append(Spacer(1, 20))
         story.append(PageBreak())
 
-
 # ------------------------------
 # Main Visual Class
 # ------------------------------
@@ -708,155 +708,3 @@ class Visual:
 
         # Build the PDF
         doc.build(story)
-
-
-# ------------------------------
-# Example Usage
-# ------------------------------
-
-if __name__ == "__main__":
-    # Zusätzliche Daten für den Abschnitt "1.4 Additional Parameters"
-    additional_data = {
-        "qubits": 5,
-        "depth": 3,
-        "learning_rate": 0.01,
-        "shots": 1024,
-        "max_iterations": 1000,
-        "population_size": 20,
-        "mutation_rate": 0.1,
-        "num_particles": 3,
-        "inertia": 0.5,
-        "cognitive": 1.5,
-        "social": 1.5,
-        "initial_temperature": 1.0,
-        "cooling_rate": 0.99,
-        "optimizers": ["Basic Gradient Descent", "Momentum", "Adam", "Genetic Algorithm", "Particle Swarm Optimization", "Bayesian Optimization", "Simulated Annealing", "Quantum Natural Gradient"],
-        "activation_matrices": [1, 2],  # Beispielaktivierungsmatrizen
-        "entanglements": ["E1", "E2"],  # Beispielverschränkungen
-        "num_input_matrices": 2  # Beispielanzahl der Eingabematrizen
-    }
-
-    # Dummy-Daten für die Demonstration
-    results = [
-        {
-            "Activation Matrix": 1,
-            "Target State": "00011",
-            "Optimizer": "Adam",
-            "Initial Probability": 0.25,
-            "Final Probability": 0.75,
-            "Losses": [0.5, 0.4, 0.3, 0.2, 0.1],
-            "Initial Counts": {"00011": 25, "00101": 15, "shots": 100},
-            "Final Counts": {"00011": 75, "00101": 5, "shots": 100},
-            "Optimized Phases": np.random.uniform(0, 2 * np.pi, (5, 5)).tolist()
-        },
-        {
-            "Activation Matrix": 1,
-            "Target State": "00011",
-            "Optimizer": "Momentum",
-            "Initial Probability": 0.25,
-            "Final Probability": 0.70,
-            "Losses": [0.6, 0.5, 0.4, 0.3, 0.2],
-            "Initial Counts": {"00011": 25, "00101": 15, "shots": 100},
-            "Final Counts": {"00011": 70, "00101": 10, "shots": 100},
-            "Optimized Phases": np.random.uniform(0, 2 * np.pi, (5, 5)).tolist()
-        },
-        {
-            "Activation Matrix": 1,
-            "Target State": "00011",
-            "Optimizer": "Basic Gradient Descent",
-            "Initial Probability": 0.20,
-            "Final Probability": 0.60,
-            "Losses": [0.55, 0.45, 0.35, 0.25, 0.15],
-            "Initial Counts": {"00011": 20, "00101": 20, "shots": 100},
-            "Final Counts": {"00011": 60, "00101": 40, "shots": 100},
-            "Optimized Phases": np.random.uniform(0, 2 * np.pi, (5, 5)).tolist()
-        },
-        {
-            "Activation Matrix": 2,
-            "Target State": "11100",
-            "Optimizer": "Genetic Algorithm",
-            "Initial Probability": 0.30,
-            "Final Probability": 0.80,
-            "Losses": [0.4, 0.3, 0.2, 0.1, 0.05],
-            "Initial Counts": {"11100": 30, "11010": 20, "shots": 100},
-            "Final Counts": {"11100": 80, "11010": 0, "shots": 100},
-            "Optimized Phases": np.random.uniform(0, 2 * np.pi, (5, 5)).tolist()
-        },
-        {
-            "Activation Matrix": 2,
-            "Target State": "11100",
-            "Optimizer": "Particle Swarm Optimization",
-            "Initial Probability": 0.35,
-            "Final Probability": 0.85,
-            "Losses": [0.45, 0.35, 0.25, 0.15, 0.05],
-            "Initial Counts": {"11100": 35, "11010": 15, "shots": 100},
-            "Final Counts": {"11100": 85, "11010": 0, "shots": 100},
-            "Optimized Phases": np.random.uniform(0, 2 * np.pi, (5, 5)).tolist()
-        },
-        # Optimierer ohne Ergebnisse
-        # Bayesian Optimization
-        {
-            "Activation Matrix": 3,
-            "Target State": "10101",
-            "Optimizer": "Bayesian Optimization",
-            "Initial Probability": 0.30,
-            "Final Probability": 0.30,
-            "Losses": [0.4, 0.4, 0.4, 0.4, 0.4],
-            "Initial Counts": {"10101": 30, "10011": 20, "shots": 100},
-            "Final Counts": {"10101": 30, "10011": 20, "shots": 100},
-            "Optimized Phases": np.random.uniform(0, 2 * np.pi, (5, 5)).tolist()
-        },
-        # Simulated Annealing
-        {
-            "Activation Matrix": 4,
-            "Target State": "01010",
-            "Optimizer": "Simulated Annealing",
-            "Initial Probability": 0.40,
-            "Final Probability": 0.80,
-            "Losses": [0.3, 0.25, 0.2, 0.15, 0.1],
-            "Initial Counts": {"01010": 40, "01100": 10, "shots": 100},
-            "Final Counts": {"01010": 80, "01100": 20, "shots": 100},
-            "Optimized Phases": np.random.uniform(0, 2 * np.pi, (5, 5)).tolist()
-        },
-        # Quantum Natural Gradient
-        {
-            "Activation Matrix": 5,
-            "Target State": "10110",
-            "Optimizer": "Quantum Natural Gradient",
-            "Initial Probability": 0.25,
-            "Final Probability": 0.25,
-            "Losses": [0.5, 0.5, 0.5, 0.5, 0.5],
-            "Initial Counts": {"10110": 25, "10101": 25, "shots": 100},
-            "Final Counts": {"10110": 25, "10101": 25, "shots": 100},
-            "Optimized Phases": np.random.uniform(0, 2 * np.pi, (5, 5)).tolist()
-        },
-    ]
-
-    target_states = [result['Target State'] for result in results]
-    initial_training_phases = [np.random.uniform(0, 2 * np.pi, (5, 5)).tolist() for _ in results]
-    activation_matrices = [result['Activation Matrix'] for result in results]
-
-    # Dummy-Quantenschaltkreise (falls benötigt)
-    circuits = [QuantumCircuit(5) for _ in results]
-
-    num_iterations = 100
-    qubits = 5
-    depth = 3
-
-    # Initialisiere die Visual Klasse
-    visual = Visual(
-        results=results,
-        target_states=target_states,
-        initial_training_phases=initial_training_phases,
-        activation_matrices=activation_matrices,
-        circuits=circuits,
-        num_iterations=num_iterations,
-        qubits=qubits,
-        depth=depth,
-        additional_data=additional_data
-    )
-
-    # Generiere den Bericht
-    visual.generate_report("QuantumCircuitReport.pdf")
-
-    print("Report has been successfully generated.")
