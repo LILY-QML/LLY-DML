@@ -1,3 +1,11 @@
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# Project: LILY-QML
+# Version: 1.6 LLY-DML
+# Author: Leon Kaiser
+# Contact: info@lilyqml.de
+# Website: www.lilyqml.de
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 import json
 import logging
 from typing import Dict, List, Any, Optional
@@ -9,6 +17,12 @@ class OptimizerInterpreter:
     """
 
     def __init__(self, data_json_path: str, train_json_path: str):
+        """
+        Initialisiert den OptimizerInterpreter mit den Pfaden zu data.json und train.json.
+
+        :param data_json_path: Pfad zu data.json.
+        :param train_json_path: Pfad zu train.json.
+        """
         self.data_json_path = data_json_path
         self.train_json_path = train_json_path
         self.data: Dict[str, Any] = {}
@@ -21,6 +35,7 @@ class OptimizerInterpreter:
         # Konfiguration des Loggings
         logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
         self.logger = logging.getLogger('OptimizerInterpreter')
+        self.logger.info("OptimizerInterpreter wurde initialisiert.")
 
     def load_data(self):
         """
@@ -81,6 +96,44 @@ class OptimizerInterpreter:
                 self.logger.info(f"Optimizer '{optimizer}' für Matrix '{matrix}' ist erfolgreich gelaufen.")
         
         return consistent
+
+    def extract_data(self) -> Dict[str, Dict[str, Any]]:
+        """
+        Extrahiert die Optimierungsergebnisse aus den geladenen Daten.
+
+        :return: Ein Wörterbuch mit den extrahierten Daten.
+        """
+        self.logger.info("Extrahiere Daten aus den Optimierungsergebnissen")
+        self.extracted_data = {}
+        for step in self.optimizer_steps:
+            optimizer = step.get('optimizer')
+            matrix = step.get('activation_matrix')
+            result = step.get('result')
+
+            if optimizer not in self.extracted_data:
+                self.extracted_data[optimizer] = {}
+            
+            self.extracted_data[optimizer][matrix] = result
+            self.logger.debug(f"Ergebnis für Optimizer '{optimizer}' und Matrix '{matrix}' extrahiert.")
+        
+        return self.extracted_data
+
+    def get_report(self) -> Dict[str, Any]:
+        """
+        Erstellt einen Bericht basierend auf den extrahierten Daten.
+
+        :return: Ein Bericht über die Optimierungsergebnisse.
+        """
+        self.logger.info("Generiere Bericht basierend auf den extrahierten Daten")
+        report = {
+            'total_optimizers': len(self.expected_optimizers),
+            'total_matrices': len(self.expected_matrices),
+            'extracted_data': self.extracted_data,
+            'successful_combinations': len(self.extracted_data),
+        }
+
+        self.logger.info(f"Bericht erstellt: {report}")
+        return report
 
     def run(self) -> Optional[Dict[str, Any]]:
         """

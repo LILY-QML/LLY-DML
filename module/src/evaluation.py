@@ -1,19 +1,43 @@
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# Project: LILY-QML
+# Version: 1.6 LLY-DML
+# Author: Leon Kaiser
+# Contact: info@lilyqml.de
+# Website: www.lilyqml.de
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import logging
 
 class MatrixEvaluation:
     
-    def __init__(self, results):
-        # Load the data from results (which is a list of dictionaries)
+    def __init__(self, results, logger=None):
+        """
+        Initializes the MatrixEvaluation class and loads the data.
+
+        :param results: list of dictionaries containing results.
+        :param logger: logging.Logger, optional logger for logging messages.
+        """
         self.data = pd.DataFrame(results)
+        self.logger = logger
+
+        if self.logger:
+            self.logger.info("MatrixEvaluation initialized with results data.")
 
     def evaluate_matrices(self):
-        # For each optimizer, group by activation matrix and get relevant details
+        """
+        Evaluates the matrices by grouping data by optimizer and activation matrix.
+
+        :return: Dictionary with evaluations for each optimizer.
+        """
         evaluations = {}
 
         for optimizer, group in self.data.groupby('Optimizer'):
             optimizer_evaluations = []
+            if self.logger:
+                self.logger.info(f"Evaluating matrices for Optimizer: {optimizer}")
 
             for activation_matrix, matrix_group in group.groupby('Activation Matrix'):
                 # Extract target state and its probability
@@ -32,6 +56,13 @@ class MatrixEvaluation:
                 # Determine if the target state is clearly distinguishable
                 distinguishable = all(np.abs(state_probs[0] - p) > 0.1 for p in state_probs[1:])
 
+                # Log evaluation details
+                if self.logger:
+                    self.logger.debug(f"Optimizer: {optimizer}, Activation Matrix: {activation_matrix}")
+                    self.logger.debug(f"Target State: {target_state}, Target Probability: {state_probs[0]}")
+                    self.logger.debug(f"Next States: {state_names[1:]}, Next Probabilities: {state_probs[1:]}")
+                    self.logger.debug(f"Clearly Distinguishable: {distinguishable}")
+
                 # Create evaluation summary for the activation matrix
                 evaluation_summary = {
                     'Activation Matrix': activation_matrix,
@@ -46,12 +77,21 @@ class MatrixEvaluation:
 
             evaluations[optimizer] = optimizer_evaluations
 
+        if self.logger:
+            self.logger.info("Matrix evaluations completed.")
+
         return evaluations
 
     def plot_evaluation_summary(self, evaluations):
-        # Plot a table for each optimizer's evaluation
+        """
+        Plots the evaluation summary for each optimizer as a table.
+
+        :param evaluations: Dictionary containing evaluations for each optimizer.
+        """
         for optimizer, optimizer_data in evaluations.items():
             df = pd.DataFrame(optimizer_data)
+            if self.logger:
+                self.logger.info(f"Plotting evaluation summary for Optimizer: {optimizer}")
 
             # Plotting the table
             fig, ax = plt.subplots(figsize=(14, 6))
@@ -61,3 +101,6 @@ class MatrixEvaluation:
             ax.set_title(f"Evaluation Summary for Optimizer: {optimizer}", fontsize=16)
             plt.tight_layout()
             plt.show()
+
+            if self.logger:
+                self.logger.info(f"Plot for Optimizer {optimizer} displayed.")

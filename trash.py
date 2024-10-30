@@ -215,53 +215,6 @@ def train_optimizer(optimizer_tuple):
         logging.error(f"Error with optimizer {optimizer_name} for {label}: {e}")
         return (optimizer_name, label, None, None, str(e))
 
-# Example Circuit class
-class Circuit:
-    """
-    Example implementation of a Circuit class.
-    """
-    def __init__(self, training_phases=None):
-        """
-        Initializes the Circuit.
-        
-        :param training_phases: List of training phases.
-        """
-        if training_phases is None:
-            self.training_phases = [0.0] * 24  # Example training phases
-        else:
-            self.training_phases = training_phases
-
-# Example Reader class
-class Reader:
-    """
-    Example implementation of a Reader that loads training data.
-    """
-    def __init__(self, data_json):
-        """
-        Initializes the Reader.
-        
-        :param data_json: Path to the data JSON file.
-        """
-        self.train_data = self.load_data(data_json)
-        self.data = self.train_data.get('data', {})
-
-    def load_data(self, data_json):
-        """
-        Loads data from a JSON file.
-        
-        :param data_json: Path to the data JSON file.
-        :return: Dictionary with the loaded data.
-        """
-        try:
-            with open(data_json, 'r') as f:
-                data = json.load(f)
-            return data
-        except FileNotFoundError:
-            logging.error(f"Data JSON file not found: {data_json}")
-            return {}
-        except json.JSONDecodeError as e:
-            logging.error(f"Error parsing data JSON file: {e}")
-            return {}
 
 # Optimizer Manager class
 class OptimizerManager:
