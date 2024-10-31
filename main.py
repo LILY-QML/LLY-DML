@@ -40,12 +40,7 @@ LLY-DML - Part of the LILY Project - Version 1.6 Beta - info@lilyqml.de - lilyqm
         self.data_folder = os.path.join(self.var_folder, 'data')  # Added for saving images
         self.ensure_var_directory()
 
-        # Initialize the Reader with create_train_json_on_init=False to prevent automatic creation
-        self.reader = Reader(
-            data_json_path=self.data_file,
-            log_db_path=self.log_file,
-            create_train_json_on_init=False  # Prevents automatic creation of train.json
-        )
+        self.reader = Reader(working_directory=self.var_folder)
         self.train_json_found = os.path.isfile(self.train_file)
         self.extracted_data = {}  # Initialisierung hinzugefügt
 

@@ -8,226 +8,263 @@
 
 import json
 import os
-import sys
 from datetime import datetime
 import logging
 
+
 class Reader:
-    def __init__(
-        self,
-        data_json_path='var/data.json',
-        train_json_path='var/train.json',
-        log_db_path='var/log.logdb',
-        create_train_json_on_init=True  # New parameter to control train.json creation
-    ):
-        """
-        Initializes the Reader class, loads data from JSON files, and sets up logging.
-        
-        :param data_json_path: Path to the data JSON file.
-        :param train_json_path: Path to the train JSON file.
-        :param log_db_path: Path to the log database file.
-        :param create_train_json_on_init: Whether to create train.json if it doesn't exist.
-        """
-        self.data_json_path = data_json_path
-        self.train_json_path = train_json_path
-        self.log_db_path = log_db_path
-        self.data_config = {}
-        self.train_data = {}
-        self.data_optimizer = []
-        self.train_optimizer = []
-        
-        # Initialize self.data as an empty dictionary
-        self.data = {}
 
-        # Variables for JSON properties
-        self.qubits = None
-        self.depth = None
-        self.learning_rate = None
-        self.shots = None
-        self.max_iterations = None
-        self.population_size = None
-        self.mutation_rate = None
-        self.num_particles = None
-        self.inertia = None
-        self.cognitive = None
-        self.social = None
-        self.initial_temperature = None
-        self.cooling_rate = None
-        self.optimizers = []
-        self.activation_matrices = {}
-        
-        # Setup logging configuration
-        self.setup_logging()
-        
-        self.check_files(create_train_json_on_init)  # Pass the new parameter
-        self.load_data_json()
-        self.load_train_json()
-
-    def load_data_json(self):
+    def __init__(self, working_directory='var'):
         """
-        Loads data from the data JSON file, assigns configuration variables, and logs results.
-        """
-        try:
-            with open(self.data_json_path, 'r') as f:
-                self.data_config = json.load(f)
-            
-            # Assign variables from data_config
-            self.qubits = self.data_config.get('qubits')
-            self.depth = self.data_config.get('depth')
-            self.learning_rate = self.data_config.get('learning_rate')
-            self.shots = self.data_config.get('shots')
-            self.max_iterations = self.data_config.get('max_iterations')
-            self.population_size = self.data_config.get('population_size')
-            self.mutation_rate = self.data_config.get('mutation_rate')
-            self.num_particles = self.data_config.get('num_particles')
-            self.inertia = self.data_config.get('inertia')
-            self.cognitive = self.data_config.get('cognitive')
-            self.social = self.data_config.get('social')
-            self.initial_temperature = self.data_config.get('initial_temperature')
-            self.cooling_rate = self.data_config.get('cooling_rate')
-            self.optimizers = self.data_config.get('optimizers', [])
-            
-            # Store activation matrices in a dictionary
-            self.activation_matrices = self.data_config.get('activation_matrices', {})
+        Initializes the Reader class, setting up the working directory and configuration file.
 
-            # Set the loaded data in self.data for other classes to access
-            self.data = self.data_config  
-            
-            # Debug outputs
-            self.logger.debug("Loaded optimizers from data.json: %s", self.optimizers)
-            self.logger.debug("Loaded activation matrices: %s", self.activation_matrices.keys())
-            print("Loaded activation matrices:", self.activation_matrices.keys())
-        
-        except json.JSONDecodeError as e:
-            error_msg = f"Error parsing data.json: {e}"
-            print(error_msg)
+        :param working_directory: Path to the directory where files and logs will be managed.
+                                  Defaults to 'var'.
+        """
+
+        self.logger = None
+        self.working_directory = working_directory
+        self.checkLog()
+
+    def fileCheck(self):
+        """
+        Verifies the existence of required files within the specified working directory.
+
+        This method checks if the working directory exists and then verifies the presence
+        of essential files: 'train.json', 'config.json', and 'data.json'. If the directory
+        or any of these files are missing, it logs an error message and returns a detailed
+        error message. If all files are present, it logs and returns a confirmation message.
+
+        Functionality:
+        - Folder Check:
+          Ensures the working directory (default: 'var') exists. If it does not,
+          an error message is logged and returned.
+
+        - File Check:
+          Confirms the presence of the required files ('train.json', 'config.json',
+          'data.json') within the working directory. If any file is missing,
+          a list of missing files is logged and returned.
+
+        - Error Handling:
+          If the working directory or any required file is missing, an appropriate error
+          message is logged and returned. If all checks pass, an informational log
+          confirms the presence of all required files.
+
+        :return: A success message if all files are present, or an error message indicating
+                 any missing files.
+        """
+
+        if not os.path.exists(self.working_directory):
+            error_msg = f"Error: The directory '{self.working_directory}' does not exist."
             self.logger.error(error_msg)
-            sys.exit(1)
+            return error_msg
 
-    def setup_logging(self):
+        required_files = ['train.json', 'config.json', 'data.json']
+        missing_files = [f for f in required_files if not os.path.exists(os.path.join(self.working_directory, f))]
+        if missing_files:
+            error_msg = f"Error: Missing the following files: {', '.join(missing_files)}"
+            self.logger.error(error_msg)
+            return error_msg
+
+        self.logger.info("All required files are present.")
+        return "All required files are present."
+
+    def checkLog(self):
         """
-        Sets up logging configuration for the Reader.
+        Manages the log file, ensuring that a current log file exists and is correctly updated
+        according to the configuration.
+
+        This method reads the specified configuration file in the working directory to determine
+        if a logfile is defined. It then checks if the logfile name matches today’s date. If the
+        logfile does not match or is missing, it creates a new log file using the `createLog()`
+        method and updates the configuration file accordingly. This process guarantees that each
+        day has its own unique logfile, and that the configuration reflects the current log file.
+
+        Functionalities:
+        - Read Log from Configuration:
+          Opens the configuration file to check if a logfile is specified. If the file does
+          not exist, an error is logged, and a new logfile is created.
+
+        - Check Logfile Name:
+          Compares the name of the logfile in the configuration file with today’s date. If they
+          do not match, this indicates that a new log file should be created.
+
+        - Logfile Existence:
+          If the name matches today’s date, it verifies that the logfile exists in the working
+          directory. If it does not, a new log file is created.
+
+        - Create New Logfile:
+          If the logfile is outdated, missing, or not defined in the configuration file, this
+          method creates a new logfile named with the current date (e.g., '2024-04-27.log') and
+          updates the configuration file to reflect the new file.
+
+        Error Handling:
+        - If the configuration file is missing or cannot be read, a new logfile is created to
+          ensure logging continuity, and an error message is logged.
+        - If the configuration file contains invalid JSON, an error is logged indicating the
+          formatting issue.
+
+        :raises FileNotFoundError: If the configuration file is missing, it creates a new logfile.
+        :raises json.JSONDecodeError: If the configuration file has invalid JSON, an error is logged.
         """
-        if not os.path.exists('var'):
-            os.makedirs('var')
+
+        config_path = os.path.join(self.working_directory, 'config.json')
+
+        try:
+            with open(config_path, 'r') as config_file:
+                config_data = json.load(config_file)
+                logfile = config_data.get("logfile")
+
+                today_log = f"{datetime.now().strftime('%Y-%m-%d')}.log"
+                if logfile != today_log:
+                    self.createLog(today_log)
+                    config_data['logfile'] = today_log
+                    with open(config_path, 'w') as config_file:
+                        json.dump(config_data, config_file, indent=4)
+                    self.logger.info(f"Logfile updated to {today_log}")
+                else:
+                    # Set up logging if today's log file exists
+                    log_path = os.path.join(self.working_directory, logfile)
+                    logging.basicConfig(
+                        filename=log_path,
+                        filemode='a',
+                        format='%(asctime)s - %(levelname)s - %(message)s',
+                        level=logging.INFO
+                    )
+                    self.logger = logging.getLogger()
+                    self.logger.info("Logging initialized with existing log file.")
+        except FileNotFoundError:
+            self.logger.error("Error: Configuration file not found.")
+            self.createLog()
+        except json.JSONDecodeError:
+            self.logger.error("Error: Configuration file is improperly formatted.")
+
+    def createLog(self, log_name=None):
+        """
+        Creates a new logfile based on the current date and updates the configuration file
+        to reflect the newly created logfile.
+
+        This method generates a new log file with a name formatted as 'YYYY-MM-DD.log',
+        where the date corresponds to the current date. If no specific `log_name` is
+        provided, the method defaults to using today's date. The new log file is saved
+        within the working directory. After creating the file, the method updates
+        the configuration file to register the name of the current logfile, ensuring that
+        the configuration always points to the latest logfile.
+
+        Functionalities:
+        - Logfile Creation:
+          A new logfile named in the format 'current-date.log' (e.g., '2024-04-27.log')
+          is created in the working directory. If `log_name` is provided, it uses this
+          name instead of the default date-based name. A confirmation message is logged.
+
+        - Update Configuration:
+          After creating the logfile, the method opens or creates the configuration file in the
+          working directory, updating it to include the name of the new logfile under
+          the 'logfile' key. This ensures that the configuration file accurately reflects the
+          latest logfile.
+
+        Error Handling:
+        - If the configuration file exists but is not readable, an error will be logged.
+        - If the working directory does not exist or cannot be accessed, the method
+          may raise an `OSError`, depending on the system’s permissions.
+
+        :param log_name: Optional; allows specifying a custom name for the logfile.
+                         If not provided, the name defaults to today's date.
+        :raises OSError: If the working directory or logfile cannot be created due
+                         to system permissions.
+        """
+
+        log_name = log_name or f"{datetime.now().strftime('%Y-%m-%d')}.log"
+        log_path = os.path.join(self.working_directory, log_name)
+        open(log_path, 'w').close()  # Create the logfile
+
+        # Set up logging for the new log file
         logging.basicConfig(
-            filename=self.log_db_path,
+            filename=log_path,
             filemode='a',
             format='%(asctime)s - %(levelname)s - %(message)s',
             level=logging.INFO
         )
         self.logger = logging.getLogger()
-        self.logger.debug("Logging started.") 
+        self.logger.info(f"New logfile created: {log_path}")
 
-        # Set the logging level for matplotlib specifically to WARNING
-        logging.getLogger('matplotlib').setLevel(logging.WARNING)
+        # Update or create configuration to reflect the new logfile
+        config_path = os.path.join(self.working_directory, 'config.json')
+        config_data = {}
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as config_file:
+                config_data = json.load(config_file)
+        config_data['logfile'] = log_name
+        with open(config_path, 'w') as config_file:
+            json.dump(config_data, config_file, indent=4)
 
-    def check_files(self, create_train_json_on_init):
+    def dataConsistency(self):
         """
-        Checks the existence of necessary files, creates directories, and optionally creates train.json.
-        
-        :param create_train_json_on_init: Whether to create train.json if it does not exist.
-        """
-        if not os.path.exists(self.data_json_path):
-            error_msg = f"Error: data.json not found at {self.data_json_path}. The program will exit."
-            print(error_msg)
-            self.logger.error(error_msg)
-            sys.exit(1)
-        
-        if not os.path.exists('var'):
-            os.makedirs('var')
-            self.logger.debug("Created 'var' directory.")
-        
-        if not os.path.exists(self.train_json_path) and create_train_json_on_init:
-            self.create_train_json()
-        
-        if not os.path.exists(self.log_db_path):
-            open(self.log_db_path, 'a').close()  # Create an empty log file
-            self.logger.debug("Created log file.")
+        Checks the consistency of the data in 'data.json' by validating structural
+        and content requirements.
 
-    def create_train_json(self):
-        """
-        Creates a new train.json file with initial values.
-        """
-        self.train_data = {
-            "creation_date": datetime.now().isoformat(),
-            "data_json": self.data_json_path,
-            "optimizers": {},
-            "training_matrix": None,
-            "converted_activation_matrices": {},
-            "simulation_results": {}
-        }
-        print("Creating train.json with the following content:")
-        print(json.dumps(self.train_data, indent=4))
-        self.logger.debug("Creating train.json with the following content:")
-        self.logger.debug(json.dumps(self.train_data, indent=4))
-        with open(self.train_json_path, 'w') as f:
-            json.dump(self.train_data, f, indent=4)
-        print(f"train.json created at {self.train_json_path}")
-        self.logger.info(f"train.json created at {self.train_json_path}")
+        This method ensures that the 'data.json' file contains the necessary structure
+        and data for expected operation. It checks for required keys and verifies that
+        each optimizer listed has corresponding arguments defined. Additionally, it
+        ensures the presence of matrices data, as these are crucial for certain
+        calculations. If any issues are found, appropriate warnings or errors are
+        logged, and an error message is returned.
 
-    def load_train_json(self):
-        """
-        Loads data from train.json, or initializes an empty dictionary if train.json does not exist.
-        """
-        if os.path.exists(self.train_json_path):
-            try:
-                with open(self.train_json_path, 'r') as f:
-                    content = f.read()
-                    self.logger.debug("Content of train.json:")
-                    self.logger.debug(content)
-                    print("Content of train.json:")
-                    print(content)
-                    if not content.strip():
-                        error_msg = "Error: train.json is empty."
-                        print(error_msg)
-                        self.logger.error(error_msg)
-                        self.train_data = {}
-                        self.train_optimizer = []
-                    else:
-                        self.train_data = json.loads(content)
-                        self.train_optimizer = list(self.train_data.get('optimizers', {}).keys())
-                        self.logger.debug("Already executed optimizers from train.json: %s", self.train_optimizer)
-                        print("Already executed optimizers from train.json:", self.train_optimizer)
-            except json.JSONDecodeError as e:
-                error_msg = f"Error parsing train.json: {e}"
-                print(error_msg)
-                self.logger.error(error_msg)
-                sys.exit(1)
-            except Exception as e:
-                error_msg = f"An unexpected error occurred while loading train.json: {e}"
-                print(f"An error occurred: {e}")
-                self.logger.error(error_msg)
-                sys.exit(1)
-        else:
-            self.train_data = {}
-            self.train_optimizer = []
-            self.logger.info("train.json does not exist.")
-            print("train.json does not exist.")
+        Functionalities:
+        - Basic Structure Check:
+          Verifies that 'data.json' contains essential keys such as "qubits", "depth",
+          "optimizers", "optimizer_arguments", and "matrices". If any of these are
+          missing, an error message is logged and returned.
 
-    def set_training_matrix(self, training_matrix):
+        - Check Optimizer List:
+          Ensures that each optimizer listed in "optimizers" has corresponding entries
+          in "optimizer_arguments". If an optimizer is missing arguments, a warning is
+          logged for each missing argument but does not stop execution.
+
+        - Matrix Content Check:
+          Confirms that data is present in the "matrices" section. The exact structure
+          of matrices is not strictly validated, but their presence is essential. If
+          "matrices" is missing or empty, an error message is logged and returned.
+
+        Error Handling:
+        - If 'data.json' is missing, an error message is logged and returned.
+        - If 'data.json' has an invalid JSON format, an error message is logged
+          and returned.
+
+        :return: A success message if all consistency checks pass, or an error message
+                 indicating any structural or content issues.
+        :raises FileNotFoundError: If 'data.json' does not exist.
+        :raises json.JSONDecodeError: If 'data.json' is not in valid JSON format.
         """
-        Saves the training matrix to train.json.
-        
-        :param training_matrix: The training matrix to save.
-        """
-        self.train_data['training_matrix'] = training_matrix
-        self.train_data['creation_date'] = datetime.now().isoformat()
+
+        data_path = os.path.join(self.working_directory, 'data.json')
         try:
-            with open(self.train_json_path, 'w') as f:
-                json.dump(self.train_data, f, indent=4)
-            success_msg = "Training matrix successfully saved to train.json."
-            print(success_msg)
-            self.logger.info(success_msg)
-        except Exception as e:
-            error_msg = f"Error saving the training matrix to train.json: {e}"
-            print(error_msg)
+            with open(data_path, 'r') as f:
+                data = json.load(f)
+
+            required_keys = ["qubits", "depth", "optimizers", "optimizer_arguments", "matrices"]
+            if not all(key in data for key in required_keys):
+                error_msg = "Error: Incorrect structure in data.json"
+                self.logger.error(error_msg)
+                return error_msg
+
+            for optimizer in data["optimizers"]:
+                if optimizer not in data["optimizer_arguments"]:
+                    self.logger.warning(f"Missing arguments for {optimizer}")
+
+            if not data.get("matrices"):
+                error_msg = "Error: Matrices not defined in data.json"
+                self.logger.error(error_msg)
+                return error_msg
+
+            self.logger.info("data.json passed consistency checks.")
+            return "data.json is consistent."
+
+        except FileNotFoundError:
+            error_msg = "Error: data.json not found."
             self.logger.error(error_msg)
-
-    def get_matrix_names(self):
-        """
-        Returns the names of all activation matrices.
-
-        :return: A list of names of the activation matrices.
-        """
-        return list(self.activation_matrices.keys())
+            return error_msg
+        except json.JSONDecodeError:
+            error_msg = "Error: data.json is improperly formatted."
+            self.logger.error(error_msg)
+            return error_msg

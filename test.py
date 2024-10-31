@@ -25,12 +25,7 @@ class TestSuite:
         self.report_file = os.path.join(self.reports_folder, f"test_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt")
         self.ensure_directories()
         self.setup_logging()
-        self.reader = Reader(
-            data_json_path=os.path.join(self.var_folder, 'data.json'),
-            train_json_path=os.path.join(self.var_folder, 'train.json'),
-            log_db_path=os.path.join(self.var_folder, 'log.logdb'),
-            create_train_json_on_init=False
-        )
+        self.reader = Reader(working_directory=self.var_folder)
         self.load_and_prepare_data()
 
     def ensure_directories(self):
