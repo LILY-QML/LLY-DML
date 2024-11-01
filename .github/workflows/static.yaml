@@ -104,7 +104,7 @@ jobs:
           echo "Verarbeite Dateien:"
           echo "$files"
 
-          IFS=$'\n' read -d '' -r -a file_array <<< "$files"
+          readarray -t file_array <<< "$files"
 
           for file in "${file_array[@]}"; do
             echo "Verarbeite Datei: $file"
