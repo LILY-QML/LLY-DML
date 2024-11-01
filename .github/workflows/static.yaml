@@ -113,8 +113,11 @@ jobs:
               echo "Datei nicht gefunden: $file"
               continue
             fi
+            # Dateiberechtigungen ausgeben
+            ls -l "$file"
             # Prüfen, ob der Header existiert
-            if grep -q "# \+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+" "$file"; then
+            echo "Führe grep auf $file aus"
+            if grep -a -q '# +++++++++++++++++++++++++++++++++++++++++++++++++++++++' "$file"; then
               echo "Header gefunden, aktualisiere Versionsnummer."
               # Header existiert, Versionsnummer aktualisieren
               sed -i "s/^# Version: .*/# Version: $new_version LLY-DML/" "$file" || {
@@ -124,7 +127,7 @@ jobs:
             else
               echo "Header nicht gefunden, füge Header hinzu."
               # Header hinzufügen
-              contributors_line=$(grep -m1 "^# Contributors:" "$file" || echo "# Contributors:")
+              contributors_line=$(grep -m1 '^# Contributors:' "$file" || echo '# Contributors:')
               header="# +++++++++++++++++++++++++++++++++++++++++++++++++++++++\n# Project: LILY-QML\n# Version: $new_version LLY-DML\n# Author: Leon Kaiser\n# Contact: info@lilyqml.de\n# Website: www.lilyqml.de\n$contributors_line\n# +++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
               echo -e "$header" > "$file.new" || {
                 echo "Fehler beim Schreiben der neuen Datei $file.new"
