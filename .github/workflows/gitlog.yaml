@@ -94,6 +94,7 @@ jobs:
 
       - name: Python-Dateien aktualisieren
         if: ${{ steps.version_update.outputs.new_version != '' }}
+        shell: bash {0}
         run: |
           new_version="${{ steps.version_update.outputs.new_version }}"
           files="${{ steps.python_files.outputs.files }}"
