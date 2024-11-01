@@ -88,7 +88,9 @@ jobs:
         id: python_files
         run: |
           files=$(find . -type f -name '*.py')
-          echo "files=$files" >> $GITHUB_OUTPUT
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$files" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Python-Dateien aktualisieren
         if: ${{ steps.version_update.outputs.new_version != '' }}
