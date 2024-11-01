@@ -23,7 +23,7 @@ jobs:
       - name: Aktuelle Version auslesen
         id: version_info
         run: |
-          dml_version=$(cat version.txt)
+          dml_version="${{ env.DML_VERSION }}"
           echo "version=$dml_version" >> $GITHUB_OUTPUT
 
       - name: jq installieren
@@ -70,9 +70,18 @@ jobs:
           new_version="$major.$minor.$patch"
           echo "new_version=$new_version" >> $GITHUB_OUTPUT
 
-      - name: Neue Version speichern
+      - name: DML_VERSION aktualisieren
         if: ${{ steps.version_update.outputs.new_version != '' }}
-        run: echo "${{ steps.version_update.outputs.new_version }}" > version.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          new_version="${{ steps.version_update.outputs.new_version }}"
+          repo="${GITHUB_REPOSITORY}"
+          curl -X PATCH \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            https://api.github.com/repos/$repo/actions/variables/DML_VERSION \
+            -d "{\"name\":\"DML_VERSION\",\"value\":\"$new_version\"}"
 
       - name: Python-Dateien aktualisieren
         if: ${{ steps.version_update.outputs.new_version != '' }}
@@ -95,7 +104,6 @@ jobs:
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git add version.txt
-          git add "*.py"
+          git add .
           git commit -m "Version erhöht auf ${{ steps.version_update.outputs.new_version }}"
           git push
