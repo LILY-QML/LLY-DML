@@ -1,3 +1,12 @@
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# Project: LILY-QML
+# Version: 2.0.0 LLY-DML
+# Author: Leon Kaiser
+# Contact: info@lilyqml.de
+# Website: www.lilyqml.de
+# Contributors:
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np

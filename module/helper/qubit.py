@@ -1,3 +1,12 @@
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# Project: LILY-QML
+# Version: 2.0.0 LLY-DML
+# Author: Leon Kaiser
+# Contact: info@lilyqml.de
+# Website: www.lilyqml.de
+# Contributors:
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 class Qubit:
     def __init__(self, qubit_number):
         self.loss_function = None
