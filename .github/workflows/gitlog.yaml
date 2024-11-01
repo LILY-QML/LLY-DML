@@ -78,6 +78,7 @@ jobs:
         run: |
           new_version="${{ steps.version_update.outputs.new_version }}"
           repo="${GITHUB_REPOSITORY}"
+          echo "Aktualisiere DML_VERSION auf $new_version"
           curl -X PATCH \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ env.PAT_TOKEN }}" \
@@ -99,9 +100,13 @@ jobs:
           new_version="${{ steps.version_update.outputs.new_version }}"
           files="${{ steps.python_files.outputs.files }}"
 
+          echo "Verarbeite Dateien:"
+          echo "$files"
+
           IFS=$'\n' read -d '' -r -a file_array <<< "$files"
 
           for file in "${file_array[@]}"; do
+            echo "Verarbeite Datei: $file"
             # Prüfen, ob der Header existiert
             if grep -q "# \+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+" "$file"; then
               # Header existiert, Versionsnummer aktualisieren
