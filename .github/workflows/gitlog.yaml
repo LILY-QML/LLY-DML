@@ -12,6 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      DML_VERSION: ${{ secrets.DML_VERSION }}
+      PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
     steps:
       - name: Repository auschecken
         uses: actions/checkout@v2
@@ -72,22 +75,31 @@ jobs:
 
       - name: DML_VERSION aktualisieren
         if: ${{ steps.version_update.outputs.new_version != '' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           new_version="${{ steps.version_update.outputs.new_version }}"
           repo="${GITHUB_REPOSITORY}"
           curl -X PATCH \
             -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Authorization: Bearer ${{ env.PAT_TOKEN }}" \
             https://api.github.com/repos/$repo/actions/variables/DML_VERSION \
             -d "{\"name\":\"DML_VERSION\",\"value\":\"$new_version\"}"
+
+      - name: Python-Dateien sammeln
+        id: python_files
+        run: |
+          files=$(find . -type f -name '*.py')
+          echo "files=$files" >> $GITHUB_OUTPUT
 
       - name: Python-Dateien aktualisieren
         if: ${{ steps.version_update.outputs.new_version != '' }}
         run: |
           new_version="${{ steps.version_update.outputs.new_version }}"
-          for file in $(find . -name '*.py'); do
+          files="${{ steps.python_files.outputs.files }}"
+
+          IFS=$'\n' read -d '' -r -a file_array <<< "$files"
+
+          for file in "${file_array[@]}"; do
+            # Prüfen, ob der Header existiert
             if grep -q "# \+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+\+" "$file"; then
               # Header existiert, Versionsnummer aktualisieren
               sed -i "s/^# Version: .*/# Version: $new_version LLY-DML/" "$file"
@@ -95,7 +107,7 @@ jobs:
               # Header hinzufügen
               contributors_line=$(grep -m1 "^# Contributors:" "$file" || echo "# Contributors:")
               header="# +++++++++++++++++++++++++++++++++++++++++++++++++++++++\n# Project: LILY-QML\n# Version: $new_version LLY-DML\n# Author: Leon Kaiser\n# Contact: info@lilyqml.de\n# Website: www.lilyqml.de\n$contributors_line\n# +++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
-              (echo -e "$header"; cat "$file") > temp && mv temp "$file"
+              (echo -e "$header"; cat "$file") > "$file.new" && mv "$file.new" "$file"
             fi
           done
 
