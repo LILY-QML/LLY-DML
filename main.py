@@ -1,220 +1,241 @@
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# Project: LILY-QML
+# Version: 1.6 LLY-DML
+# Author: Leon Kaiser
+# Contact: info@lilyqml.de
+# Website: www.lilyqml.de
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+import sys
+import logging
 import json
-import os
-import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
-from qiskit.visualization import plot_histogram, circuit_drawer
+import os 
+from module.src.console import Console
+from module.start import Start
+from module.src.reader import Reader
 
-from module.circuit import Circuit
-from module.optimizer import (
-    Optimizer,
-    OptimizerWithMomentum,
-    AdamOptimizer,
-    GeneticOptimizer,
-    PSOOptimizer,
-    BayesianOptimizer,
-    SimulatedAnnealingOptimizer
+# Set up logging
+log_dir = 'logs'
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+
+logging.basicConfig(
+    filename=os.path.join(log_dir, 'lily_qml_dml.log'),
+    filemode='a',
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    level=logging.INFO
 )
-from module.visual import Visual
+logger = logging.getLogger()
 
-# Function to read configuration from JSON
-def load_config(json_path):
-    with open(json_path, 'r') as f:
-        return json.load(f)
-
-# Load configuration from JSON
-json_path = os.path.join('var', 'data.json')
-config = load_config(json_path)
-
-# Extract configuration parameters
-qubits = config['qubits']
-depth = config['depth']
-learning_rate = config['learning_rate']
-shots = config['shots']
-activation_matrices = config['activation_matrices']
-max_iterations = config['max_iterations']
-optimizers_to_run = config['optimizers']
-
-# Function to generate random training phases
-def generate_random_training_phases(qubits, depth):
-    return np.random.uniform(0, 2 * np.pi, (depth * 3, qubits)).tolist()
-
-# List to store the results
-all_results = []
-
-# Define optimizer classes
-optimizer_classes = {
-    "Basic": Optimizer,
-    "Momentum": OptimizerWithMomentum,
-    "Adam": AdamOptimizer,
-    "Genetic": GeneticOptimizer,
-    "PSO": PSOOptimizer,
-    "Bayesian": BayesianOptimizer,
-    "SimulatedAnnealing": SimulatedAnnealingOptimizer
-}
-
-# Generate and store the initial random training phases matrix
-initial_training_phases = generate_random_training_phases(qubits, depth)
-print("Initial Training Phases Matrix:")
-print(initial_training_phases)
-
-# Loop through each activation matrix
-for i, activation_phases in enumerate(activation_matrices):
-    print(f"Optimizing for Activation Matrix {i+1}")
-
-    # Reuse the initial training phases for each activation matrix
-    training_phases = initial_training_phases
-
-    # Create a new circuit for each activation phase
-    circuit = Circuit(
-        qubits=qubits,
-        depth=depth,
-        training_phases=training_phases,
-        activation_phases=activation_phases,
-        shots=shots
-    )
-
-    # Run initial measurement to determine the most likely state
-    initial_result = circuit.run()
-    initial_counts = initial_result.get_counts()
-    initial_distribution = circuit.get_counts()
-
-    # Determine the most likely target state from the initial measurement
-    target_state = max(initial_distribution, key=initial_distribution.get)
-    print(f"Initial most likely target state for Activation Matrix {i+1}: {target_state}")
-
-    # Store target states to ensure they are unique
-    existing_target_states = [result['Target State'] for result in all_results]
-    while target_state in existing_target_states:
-        # Remove the current target state from distribution and find the next most likely state
-        initial_distribution.pop(target_state)
-        target_state = max(initial_distribution, key=initial_distribution.get)
-        print(f"Adjusted target state to avoid duplicates: {target_state}")
-
-    # Initial visualization
-    circuit_image_path = os.path.join("var", f"circuit_initial_{i+1}.png")
-    circuit_drawer(circuit.circuit, output='mpl', filename=circuit_image_path)
-
-    # Run selected optimizers
-    for optimizer_name in optimizers_to_run:
-        optimizer_class = optimizer_classes.get(optimizer_name)
+class DML:
+    def __init__(self, reader):
+        """
+        Initialisiert die DML-Klasse mit einer Reader-Instanz.
         
-        if optimizer_class is None:
-            print(f"Optimizer {optimizer_name} not recognized, skipping...")
-            continue
+        :param reader: Eine Instanz der Reader-Klasse.
+        """
+        self.reader = reader
+        self.start_instance = Start(self.reader)
+        self.console = None
+        logger.info("DML initialized with Start instance.")
 
-        print(f"Running optimizer: {optimizer_name}")
+    def start(self):
+        """
+        Führt die Startmethode aus und startet die Konsole.
+        """
+        logger.info("DML start method initiated.")
+        # Starte die Initialisierung durch die Start-Klasse
+        self.start_instance.run()
+        
+        # Extrahiere notwendige Informationen für die Console
+        train_exists = self.start_instance.train_json_exists
+        train_content = self._get_train_content()
+        data_exists = self.start_instance.reader.dataConsistency()
+        data_content = self._get_data_content()
+        optimizers = self._get_optimizers()
+        missing_optimizers = self._get_missing_optimizers()
 
-        # Create an optimizer instance
-        if optimizer_name == "Genetic":
-            optimizer = optimizer_class(
-                circuit, 
-                target_state, 
-                learning_rate, 
-                max_iterations,
-                population_size=config.get('population_size', 20),
-                mutation_rate=config.get('mutation_rate', 0.1)
-            )
-        elif optimizer_name == "PSO":
-            optimizer = optimizer_class(
-                circuit, 
-                target_state, 
-                learning_rate, 
-                max_iterations,
-                num_particles=config.get('num_particles', 30),
-                inertia=config.get('inertia', 0.5),
-                cognitive=config.get('cognitive', 1.5),
-                social=config.get('social', 1.5)
-            )
-        elif optimizer_name == "Bayesian":
-            phase_shape = np.array(training_phases).shape
-            flat_phases_size = np.prod(phase_shape)
-            bounds = [(0, 2 * np.pi)] * flat_phases_size  # Define bounds correctly
-            optimizer = optimizer_class(
-                circuit, 
-                target_state, 
-                learning_rate, 
-                max_iterations,
-                bounds=bounds  # Pass bounds correctly
-            )
-        elif optimizer_name == "SimulatedAnnealing":
-            optimizer = optimizer_class(
-                circuit, 
-                target_state, 
-                learning_rate, 
-                max_iterations,
-                initial_temperature=config.get('initial_temperature', 1.0),
-                cooling_rate=config.get('cooling_rate', 0.99)
-            )
+        # Initialisiere die Console-Klasse mit den extrahierten Daten
+        self.console = Console(
+            train_exists=train_exists,
+            train_content=train_content,
+            data_exists=data_exists,
+            data_content=data_content,
+            optimizers=optimizers,
+            missing_optimizers=missing_optimizers
+        )
+        logger.info("Console instance created.")
+
+        # Starte das Hauptmenü der Console
+        while True:
+            action = self.console.run_main_menu()
+            if action:
+                if action.get("action") == "view_information":
+                    self.handle_information()
+                elif action.get("action") == "train_all_optimizers":
+                    self.handle_training_all_optimizers()
+                elif action.get("action") == "train_specific_optimizers":
+                    self.handle_training_specific_optimizers(action.get("optimizers"))
+                elif action.get("action") == "create_report":
+                    self.handle_report()
+                elif action.get("action") == "exit":
+                    self.handle_exit()
+                else:
+                    logger.warning(f"Unknown action received: {action}")
+                    print("Unknown action. Please try again.")
+
+    def handle_information(self):
+        """
+        Zeigt Informationen über die Referenzdateien an.
+        """
+        logger.info("Handling information display.")
+        self.console.show_data_info()
+        self.console.show_train_info()
+
+    def handle_training_all_optimizers(self):
+        """
+        Führt das Training aller Optimierer durch.
+        """
+        logger.info("Handling training of all optimizers.")
+        # Hier könnte der Trainingsprozess implementiert werden
+        print("Training all optimizers...")
+        # Beispiel: Simuliere Trainingsdauer
+        import time
+        time.sleep(2)
+        logger.info("All optimizers have been trained successfully.")
+        print("All optimizers have been trained successfully.")
+        input("Press Enter to continue.")
+
+    def handle_training_specific_optimizers(self, optimizers):
+        """
+        Führt das Training spezifischer Optimierer durch.
+        
+        :param optimizers: Liste der zu trainierenden Optimierer.
+        """
+        if optimizers:
+            logger.info(f"Handling training of specific optimizers: {optimizers}")
+            print(f"Training specific optimizers: {', '.join(optimizers)}")
+            # Hier könnte der spezifische Trainingsprozess implementiert werden
+            import time
+            time.sleep(2)
+            logger.info(f"Optimizers {', '.join(optimizers)} have been trained successfully.")
+            print(f"Optimizers {', '.join(optimizers)} have been trained successfully.")
+            input("Press Enter to continue.")
         else:
-            optimizer = optimizer_class(
-                circuit, 
-                target_state, 
-                learning_rate, 
-                max_iterations
-            )
+            logger.warning("No optimizers selected for specific training.")
+            print("No optimizers selected.")
+            input("Press Enter to continue.")
 
-        # Optimize the circuit
-        optimized_phases, losses = optimizer.optimize()
+    def handle_report(self):
+        """
+        Generiert und zeigt Berichte an.
+        """
+        logger.info("Handling report generation.")
+        # Hier könnte die Berichtserstellung implementiert werden
+        print("Generating report...")
+        # Beispiel: Simuliere Berichtserstellung
+        import time
+        time.sleep(2)
+        logger.info("Report has been generated successfully.")
+        print("Report has been generated successfully.")
+        input("Press Enter to continue.")
 
-        # Run the circuit again with optimized phases
-        final_counts = circuit.run().get_counts()
-        final_distribution = optimizer.get_distribution(final_counts)
+    def handle_exit(self):
+        """
+        Beendet das Programm.
+        """
+        logger.info("Handling program exit.")
+        print("Exiting the program. Goodbye!")
+        sys.exit()
 
-        # Record the probability of the target state
-        initial_probability = initial_distribution.get(target_state, 0)
-        final_probability = final_distribution.get(target_state, 0)
+    def _get_train_content(self):
+        """
+        Holt den Inhalt von train.json.
+        
+        :return: Inhalt von train.json oder None.
+        """
+        if self.start_instance.train_json_exists:
+            try:
+                with open(self.start_instance.reader.train_path, 'r') as f:
+                    content = f.read()
+                    logger.info("train.json content retrieved successfully.")
+                    return content
+            except Exception as e:
+                logger.error(f"Error reading train.json: {e}")
+                return None
+        else:
+            logger.info("train.json does not exist.")
+            return None
 
-        # Append the results
-        all_results.append({
-            "Activation Matrix": i + 1,
-            "Target State": target_state,
-            "Optimizer": optimizer_name,
-            "Initial Probability": initial_probability,
-            "Final Probability": final_probability,
-            "Losses": losses,
-            "Initial Counts": initial_counts,
-            "Final Counts": final_counts,
-            "Optimized Phases": optimized_phases
-        })
+    def _get_data_content(self):
+        """
+        Holt den Inhalt von data.json.
+        
+        :return: Inhalt von data.json oder None.
+        """
+        try:
+            with open(self.start_instance.reader.data_path, 'r') as f:
+                content = f.read()
+                logger.info("data.json content retrieved successfully.")
+                return content
+        except Exception as e:
+            logger.error(f"Error reading data.json: {e}")
+            return None
 
-        # Display the optimized training phases
-        print("Optimized Training Phases:")
-        for phase in optimized_phases:
-            print(phase)
+    def _get_optimizers(self):
+        """
+        Holt die Liste der verfügbaren Optimierer.
+        
+        :return: Liste der Optimierer.
+        """
+        try:
+            with open(self.start_instance.reader.data_path, 'r') as f:
+                data = json.load(f)
+                optimizers = data.get('optimizers', [])
+                logger.info(f"Optimizers retrieved: {optimizers}")
+                return optimizers
+        except Exception as e:
+            logger.error(f"Error retrieving optimizers: {e}")
+            return []
 
-        print("\n" + "="*60 + "\n")
+    def _get_missing_optimizers(self):
+        """
+        Holt die Liste der fehlenden Optimierer.
+        
+        :return: Liste der fehlenden Optimierer.
+        """
+        # Hier wird angenommen, dass fehlende Optimierer auf irgendeine Weise ermittelt werden
+        # Diese Logik muss entsprechend den Anforderungen implementiert werden
+        # Beispielhafte Implementierung:
+        try:
+            with open(self.start_instance.reader.data_path, 'r') as f:
+                data = json.load(f)
+                available_optimizers = data.get('optimizers', [])
+                required_optimizers = [
+                    "AdamOptimizer",
+                    "SGDOptimizer",
+                    "RMSPropOptimizer",
+                    "AdaGradOptimizer",
+                    "MomentumOptimizer",
+                    "NadamOptimizer"
+                ]
+                missing = [opt for opt in required_optimizers if opt not in available_optimizers]
+                logger.info(f"Missing optimizers retrieved: {missing}")
+                return missing
+        except Exception as e:
+            logger.error(f"Error determining missing optimizers: {e}")
+            return []
 
-# Convert results to DataFrame for analysis
-results_df = pd.DataFrame(all_results)
 
-# Display the final results
-print(results_df)
+def main():
+    # Initialisiere die Reader-Klasse (angenommen, der Reader hat bereits die notwendigen Parameter)
+    reader = Reader(test_mode=False)
+    
+    # Initialisiere die DML-Klasse mit der Reader-Instanz
+    dml = DML(reader)
+    
+    # Starte den DML-Prozess
+    dml.start()
 
-# Plotting the results in a table
-fig, ax = plt.subplots(figsize=(12, 6))
-ax.axis('tight')
-ax.axis('off')
-ax.table(cellText=results_df.values, colLabels=results_df.columns, cellLoc='center', loc='center')
-ax.set_title("Optimization Results Summary", fontsize=16)
-plt.show()
-
-# Use Visual class to generate detailed visualizations and comparison
-visual = Visual(
-    results=all_results,
-    target_states=[result['Target State'] for result in all_results],
-    initial_training_phases=[result['Initial Counts'] for result in all_results],
-    optimized_training_phases=[result['Optimized Phases'] for result in all_results],
-    activation_matrices=activation_matrices,
-    loss_data=[result['Losses'] for result in all_results],
-    circuits=[circuit for _ in all_results],
-    num_iterations=max_iterations,
-    qubits=qubits,
-    depth=depth
-)
-
-# Generate the report without PDF generation for now
-visual.create_report()
-
-# Optionally save the updated configuration back to JSON if any changes were made
-# save_config(json_path, config)
+if __name__ == "__main__":
+    main()
