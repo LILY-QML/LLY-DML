@@ -1,8 +1,8 @@
 {
     "increase": {
-      "stable": true,
+      "stable": false,
       "dev": true,
-      "main": true
+      "main": false
     }
 }
   
