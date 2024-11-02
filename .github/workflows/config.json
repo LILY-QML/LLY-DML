@@ -1,8 +1,7 @@
 {
-    "increase": {
-      "stable": true,
-      "dev": true,
-      "main": true
-    }
+  "increase": {
+    "stable": false,
+    "dev": true,
+    "main": false
+  }
 }
-  
