@@ -1,0 +1,7 @@
+{
+    "run_test": true,
+    "run_training": true,
+    "machine_for_tests": "actions",
+    "machine_for_training": "actions",
+    "excluded_tests": ""
+}
