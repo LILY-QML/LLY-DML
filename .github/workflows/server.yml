@@ -1,0 +1,41 @@
+name: Manage Google Cloud VM and Create Directory
+
+on:
+  workflow_dispatch:
+
+jobs:
+  control-vm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0
+        with:
+          version: 'latest'
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: ${{ secrets.G_PID }}  # Nutzt das Secret G_PID
+
+      - name: Authenticate with Service Account
+        run: |
+          gcloud auth activate-service-account --key-file="${{ secrets.GCP_SA_KEY }}"
+          gcloud config set project "${{ secrets.G_PID }}"
+
+      - name: Start VM
+        run: gcloud compute instances start BIG_NAME --zone ZONE_NAME
+
+      - name: Verify VM Status
+        run: gcloud compute instances describe BIG_NAME --zone ZONE_NAME --format="get(status)"
+
+      - name: SSH into VM and Create Folder
+        env:
+          BIG_IP: BIG_IP
+          BIG_USR: BIG_USR
+          BIG_PW: BIG_PW
+        run: |
+          sshpass -p "$BIG_PW" ssh -o StrictHostKeyChecking=no $BIG_USR@$BIG_IP "mkdir -p ~/DML"
+        shell: bash
+
+      - name: Stop VM
+        run: gcloud compute instances stop BIG_NAME --zone ZONE_NAME
