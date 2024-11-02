@@ -15,10 +15,18 @@ jobs:
         with:
           version: 'latest'
           service_account_key: ${{ secrets.GCP_SA_KEY }}
-          project_id: YOUR_PROJECT_ID  # Set your project ID here
+          project_id: ${{ secrets.G_PID }}  # Nutzt das Secret G_PID
+
+      - name: Authenticate with Service Account
+        run: |
+          gcloud auth activate-service-account --key-file="${{ secrets.GCP_SA_KEY }}"
+          gcloud config set project "${{ secrets.G_PID }}"
 
       - name: Start VM
         run: gcloud compute instances start BIG_NAME --zone ZONE_NAME
+
+      - name: Verify VM Status
+        run: gcloud compute instances describe BIG_NAME --zone ZONE_NAME --format="get(status)"
 
       - name: SSH into VM and Create Folder
         env:
