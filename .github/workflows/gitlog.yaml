@@ -6,6 +6,11 @@ on:
       - dev
       - stable
       - main
+  pull_request:
+    branches:
+      - dev
+      - stable
+      - main
 
 jobs:
   versionierung:
@@ -17,11 +22,14 @@ jobs:
       PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
     steps:
       - name: Repository auschecken
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref || github.ref }}
+          persist-credentials: false
 
       - name: Aktuellen Branch ermitteln
         id: branch_info
-        run: echo "branch=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
+        run: echo "branch=${{ github.head_ref || github.ref }}" >> $GITHUB_OUTPUT
 
       - name: Aktuelle Version auslesen
         id: version_info
@@ -146,9 +154,11 @@ jobs:
 
       - name: Änderungen committen und pushen
         if: ${{ steps.version_update.outputs.new_version != '' }}
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add .
           git commit -m "Version erhöht auf ${{ steps.version_update.outputs.new_version }}"
-          git push
+          git push https://${PAT_TOKEN}@github.com/${{ github.repository }} HEAD:${{ github.head_ref || github.ref }}
