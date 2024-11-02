@@ -19,7 +19,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ secrets.G_PID }}
-          install_components: compute
+          export_default_credentials: true  # Exportiert die Anmeldeinformationen als Standard für gcloud
 
       - name: Start VM
         run: gcloud compute instances start BIG_NAME --zone ZONE_NAME
@@ -33,6 +33,7 @@ jobs:
           BIG_USR: BIG_USR
           BIG_PW: BIG_PW
         run: |
+          sudo apt-get update
           sudo apt-get install -y sshpass
           sshpass -p "$BIG_PW" ssh -o StrictHostKeyChecking=no $BIG_USR@$BIG_IP "mkdir -p ~/DML"
         shell: bash
