@@ -4,6 +4,7 @@
 # Author: Leon Kaiser
 # Contact: info@lilyqml.de
 # Website: www.lilyqml.de
+# Contributors: gh(clausia)
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import os

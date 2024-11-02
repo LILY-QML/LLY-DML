@@ -1,4 +1,4 @@
-name: Versionsverwaltung
+name: Version Control
 
 on:
   push:
@@ -13,7 +13,7 @@ on:
       - main
 
 jobs:
-  versionierung:
+  versioning:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -21,28 +21,28 @@ jobs:
       DML_VERSION: ${{ vars.DML_VERSION }}
       PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
     steps:
-      - name: Repository auschecken
+      - name: Check out repository
         uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref || github.ref }}
           persist-credentials: false
 
-      - name: Aktuellen Branch ermitteln
+      - name: Get current branch
         id: branch_info
         run: echo "branch=${{ github.head_ref || github.ref }}" >> $GITHUB_OUTPUT
 
-      - name: Aktuelle Version auslesen
+      - name: Read current version
         id: version_info
         run: |
           dml_version="${{ env.DML_VERSION }}"
           echo "version=$dml_version" >> $GITHUB_OUTPUT
 
-      - name: jq installieren
+      - name: Install jq
         run: |
           sudo apt-get update
           sudo apt-get install -y jq
 
-      - name: Konfiguration auslesen
+      - name: Read configuration
         id: config_info
         run: |
           config_file=".github/workflows/config.json"
@@ -53,7 +53,7 @@ jobs:
           echo "increase_stable=$increase_stable" >> $GITHUB_OUTPUT
           echo "increase_main=$increase_main" >> $GITHUB_OUTPUT
 
-      - name: Versionsnummer aktualisieren
+      - name: Update version number
         id: version_update
         run: |
           branch="${{ steps.branch_info.outputs.branch }}"
@@ -74,26 +74,26 @@ jobs:
             minor=0
             patch=0
           else
-            echo "Keine Versionsänderung erforderlich."
+            echo "No version change needed."
             exit 0
           fi
 
           new_version="$major.$minor.$patch"
           echo "new_version=$new_version" >> $GITHUB_OUTPUT
 
-      - name: DML_VERSION aktualisieren
+      - name: Update DML_VERSION
         if: ${{ steps.version_update.outputs.new_version != '' }}
         run: |
           new_version="${{ steps.version_update.outputs.new_version }}"
           repo="${GITHUB_REPOSITORY}"
-          echo "Aktualisiere DML_VERSION auf $new_version"
+          echo "Updating DML_VERSION to $new_version"
           curl -X PATCH \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ env.PAT_TOKEN }}" \
             https://api.github.com/repos/$repo/actions/variables/DML_VERSION \
             -d "{\"name\":\"DML_VERSION\",\"value\":\"$new_version\"}"
 
-      - name: Python-Dateien sammeln
+      - name: Collect Python files
         id: python_files
         run: |
           files=$(find . -type f -name '*.py')
@@ -101,7 +101,7 @@ jobs:
           echo "$files" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Python-Dateien aktualisieren
+      - name: Update Python files
         if: ${{ steps.version_update.outputs.new_version != '' }}
         shell: bash {0}
         run: |
@@ -109,50 +109,45 @@ jobs:
           new_version="${{ steps.version_update.outputs.new_version }}"
           files="${{ steps.python_files.outputs.files }}"
 
-          echo "Verarbeite Dateien:"
+          echo "Processing files:"
           echo "$files"
 
           readarray -t file_array <<< "$files"
 
           for file in "${file_array[@]}"; do
-            echo "Verarbeite Datei: $file"
-            # Überprüfen, ob die Datei existiert
+            echo "Processing file: $file"
             if [ ! -f "$file" ]; then
-              echo "Datei nicht gefunden: $file"
+              echo "File not found: $file"
               continue
             fi
-            # Dateiberechtigungen ausgeben
             ls -l "$file"
-            # Prüfen, ob der Header existiert
-            echo "Führe grep auf $file aus"
+            echo "Running grep on $file"
             if grep -a -q '# +++++++++++++++++++++++++++++++++++++++++++++++++++++++' "$file"; then
-              echo "Header gefunden, aktualisiere Versionsnummer."
-              # Header existiert, Versionsnummer aktualisieren
+              echo "Header found, updating version."
               sed -i "s/^# Version: .*/# Version: $new_version LLY-DML/" "$file" || {
-                echo "Fehler beim Aktualisieren der Versionsnummer in $file"
+                echo "Error updating version in $file"
                 exit 1
               }
             else
-              echo "Header nicht gefunden, füge Header hinzu."
-              # Header hinzufügen
+              echo "Header not found, adding header."
               contributors_line=$(grep -m1 '^# Contributors:' "$file" || echo '# Contributors:')
               header="# +++++++++++++++++++++++++++++++++++++++++++++++++++++++\n# Project: LILY-QML\n# Version: $new_version LLY-DML\n# Author: Leon Kaiser\n# Contact: info@lilyqml.de\n# Website: www.lilyqml.de\n$contributors_line\n# +++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
               echo -e "$header" > "$file.new" || {
-                echo "Fehler beim Schreiben der neuen Datei $file.new"
+                echo "Error writing new file $file.new"
                 exit 1
               }
               cat "$file" >> "$file.new" || {
-                echo "Fehler beim Anhängen des Inhalts von $file an $file.new"
+                echo "Error appending content of $file to $file.new"
                 exit 1
               }
               mv "$file.new" "$file" || {
-                echo "Fehler beim Ersetzen der Originaldatei $file"
+                echo "Error replacing original file $file"
                 exit 1
               }
             fi
           done
 
-      - name: Änderungen committen und pushen
+      - name: Commit and push changes
         if: ${{ steps.version_update.outputs.new_version != '' }}
         env:
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
@@ -160,5 +155,5 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add .
-          git commit -m "Version erhöht auf ${{ steps.version_update.outputs.new_version }}"
+          git commit -m "Increased version to ${{ steps.version_update.outputs.new_version }}"
           git push https://${PAT_TOKEN}@github.com/${{ github.repository }} HEAD:${{ github.head_ref || github.ref }}
