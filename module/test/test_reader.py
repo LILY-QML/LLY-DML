@@ -11,7 +11,7 @@ import json
 import tempfile
 from datetime import datetime
 import pytest
-from module.reader import Reader
+from module.src.reader import Reader
 
 
 @pytest.fixture
