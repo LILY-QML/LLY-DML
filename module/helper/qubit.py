@@ -6,7 +6,6 @@
 # Website: www.lilyqml.de
 # Contributors:
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
 class Qubit:
     def __init__(self, qubit_number):
         self.loss_function = None

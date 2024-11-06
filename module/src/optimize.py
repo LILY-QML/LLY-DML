@@ -7,6 +7,7 @@
 # Contributors:
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+
 from module.helper import qubit 
 import importlib
 import json
@@ -122,3 +123,8 @@ class Optimizer:
                                                                     self.dict_params_current_job["vdist_0_1"], self.dict_params_current_job["dist_1_0"],
                                                                      self.dict_params_current_job["dist_1_1"], self.dict_params_current_job["state"])
         return new_job
+
+
+
+
+
