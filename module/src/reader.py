@@ -4,7 +4,7 @@
 # Author: Leon Kaiser
 # Contact: info@lilyqml.de
 # Website: www.lilyqml.de
-# Contributors: 
+# Contributors: Claudia Zendejas-Morales (@clausia)
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import json
