@@ -8,17 +8,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Set up Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v0
+        uses: google-github-actions/setup-gcloud@v1
         with:
-          version: 'latest'
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          project_id: YOUR_PROJECT_ID  # Set your project ID here
+          project_id: ${{ secrets.G_PID }}
+          export_default_credentials: true  # Exportiert die Anmeldeinformationen als Standard für gcloud
 
       - name: Start VM
         run: gcloud compute instances start BIG_NAME --zone ZONE_NAME
+
+      - name: Verify VM Status
+        run: gcloud compute instances describe BIG_NAME --zone ZONE_NAME --format="get(status)"
 
       - name: SSH into VM and Create Folder
         env:
@@ -26,6 +33,8 @@ jobs:
           BIG_USR: BIG_USR
           BIG_PW: BIG_PW
         run: |
+          sudo apt-get update
+          sudo apt-get install -y sshpass
           sshpass -p "$BIG_PW" ssh -o StrictHostKeyChecking=no $BIG_USR@$BIG_IP "mkdir -p ~/DML"
         shell: bash
 
