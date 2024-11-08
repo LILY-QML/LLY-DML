@@ -1,7 +1,7 @@
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Project: LILY-QML
 # Version: 2.0.0 LLY-DML
-# Author: Leon Kaiser
+# Author: Joan Pujol
 # Contact: info@lilyqml.de
 # Website: www.lilyqml.de
 # Contributors:
@@ -11,6 +11,7 @@ import unittest
 import json
 import os
 from datetime import datetime
+import tempfile
 
 from module.src.optimize import Optimizer  # Assuming the Optimize class is implemented in this path and in test is running as python3 -m module.test.optimize
 
@@ -63,9 +64,11 @@ class TestOptimize(unittest.TestCase):
         Initializes valid and invalid Optimizer instances.
         Logs the completion of the setup.
         """
-        self.valid_optimizer = Optimizer(optimizer="AdaGradOptimizer")
-        self.invalid_optimizer = Optimizer(optimizer="InvalidOptimizer")
-        log_message("Setup completed TestOptimize with initial valid and invalid data.", level="INFO")    
+        self.valid_optimizer = Optimizer()
+        self.valid_optimizer.optimizer_class = "AdaGradOptimizer"
+        self.invalid_optimizer = Optimizer()
+        self.invalid_optimizer.optimizer_class = "InvalidOptimizer"
+        log_message("Setup completed TestOptimize with initial valid and invalid data.", level="INFO")   
 
     def test_check_prerequisites(self):
         """
@@ -135,6 +138,78 @@ class TestOptimize(unittest.TestCase):
             log_message(str(e), level="ERROR")
 
         log_message("test_execute passed successfully.", level="SUCCESS")
+
+    def test_start(self):
+        """
+        Test the start_optimize method of the Optimizer class.
+        Validates the start of the optimization process.
+        Logs the success or failure of the test.
+        """
+        try:
+            optimizer = Optimizer()
+            temp_dir = tempfile.TemporaryDirectory()
+            optimizer.train_json_file_path = os.path.join(temp_dir.name, 'train.json')
+            result=optimizer.start("INVALIDOPTIMIZER", "010")
+            self.assertEqual(result, {"Error Code": 1072, "Message": "Optimizer not found."}, "Error testing test_start_optimize with invalid optimizer")
+            result=optimizer.start("AdaGradOptimizer", "")
+            self.assertEqual(result, {"Error Code": 1071, "Message": "Target state has incorrect formatting."}, "Error testing test_start_optimize with invalid state")
+            result=optimizer.start("AdaGradOptimizer", "010")
+            self.assertEqual(result, {"Error Code": 1070, "Message": "train.json not found."}, "Error testing test_start_optimize with invalid path to train.json")
+
+            with open(optimizer.train_json_file_path, 'w') as f:
+                f.write('test')            
+
+            result = optimizer.start("AdaGradOptimizer", "010")
+            self.assertEqual(result, None, "Error testing test_start_optimize with valid data")
+
+        except Exception as e:
+            log_message(str(e), level="ERROR")
+
+        log_message("test_start_optimize passed successfully.", level="SUCCESS")
+
+    def test_encode_measurements(self):
+        optimizer = Optimizer()
+
+        measurements={'000': 512, '101': 488}
+        optimizer.initialize_qubits(2)
+        result = optimizer.encode_measurements(measurements)
+        self.assertEqual(result, None, "Error testing encode_measurements with inconsistent data.")
+        optimizer.initialize_qubits(3)
+        expected_encode = [
+            "(1:488; 0:512)",
+            "(1:0; 0:1000)",
+            "(1:488; 0:512)"
+            ]
+        result = optimizer.encode_measurements(measurements)
+        self.assertEqual(result, expected_encode, "Error testing encode_measurements with consistent data.")
+
+    def test_optimize(self):
+         optimizer = Optimizer()
+         temp_dir = tempfile.TemporaryDirectory()
+         optimizer.train_json_file_path = os.path.join(temp_dir.name, 'train.json')
+         
+         with open(optimizer.train_json_file_path, 'w') as f:
+            f.write('test')            
+
+         measurements={'000': 512, '101': 488}
+
+         training_matrix_invalid = [[1, 2, 3, 4], 
+                                    [5, 6, 7, 8], 
+                                    [9, 10, 11, 12],
+                                    [13, 14, 15, 16]]
+
+         training_matrix_valid = [[1, 2, 3, 4], 
+                            [5, 6, 7, 8], 
+                            [9, 10, 11, 12]]
+
+         optimizer.start("AdaGradOptimizer", "010")
+         optimizer.initialize_qubits(3)
+         result = optimizer.optimize(measurements, training_matrix_invalid)
+         self.assertEqual(result, None, "Error testing optimize with invalid training matrix")       
+         result = optimizer.optimize(measurements, training_matrix_valid)
+         self.assertIsNotNone(result, "Error testing optimize with valid training matrix")
+         
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -4,6 +4,7 @@
 # Author: Claudia Zendejas-Morales (@clausia)
 # Contact: info@lilyqml.de
 # Website: www.lilyqml.de
+# Contributors: Joan Pujol (@supercabb)
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import os
@@ -128,3 +129,25 @@ def test_data_consistency_invalid_structure(temp_reader):
 
     result = temp_reader.dataConsistency()
     assert "Error: Incorrect structure in data.json" in result
+
+def test_create_train_file(temp_reader):
+    result = temp_reader.create_train_file()
+    assert result == None
+
+    result = temp_reader.create_train_file()
+    assert result == {"Error Code": 1199, "Message": "train.json already exists."}
+
+def test_move_json_file(temp_reader):
+
+    if os.path.exists(os.path.join(temp_reader.working_directory, 'train.json')):
+        os.remove(os.path.join(temp_reader.working_directory, 'train.json'))
+
+    result = temp_reader.move_json_file()
+    assert result == {"Error Code": 1188, "Message": "train.json not found."}
+
+    with open(os.path.join(temp_reader.working_directory, 'train.json'), 'w') as f:
+        f.write('test')
+
+    result = temp_reader.move_json_file()
+    assert result == None
+
