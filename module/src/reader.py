@@ -4,7 +4,7 @@
 # Author: Leon Kaiser
 # Contact: info@lilyqml.de
 # Website: www.lilyqml.de
-# Contributors: Claudia Zendejas-Morales (@clausia)
+# Contributors: Claudia Zendejas-Morales (@clausia), Joan Pujol (@supercabb)
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import json
@@ -269,3 +269,36 @@ class Reader:
             error_msg = "Error: data.json is improperly formatted."
             self.logger.error(error_msg)
             return error_msg
+        
+    def create_train_file(self):
+        train_file_path = os.path.join(self.working_directory, 'train.json')
+
+        if os.path.exists(train_file_path):
+            self.logger.error("train.json already exists.")
+            return {"Error Code": 1199, "Message": "train.json already exists."}
+
+        current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        train_data = []
+        train_data.append({"creation:": current_datetime})
+
+        with open(train_file_path, 'w') as train_file:
+            json.dump(train_data, train_file, indent=4)
+
+    def move_json_file(self):
+        
+        train_file_path = os.path.join(self.working_directory, 'train.json')
+        archive_dir = os.path.join(self.working_directory, 'archive')
+
+        if not os.path.exists(archive_dir):
+            os.makedirs(archive_dir)
+
+        if not os.path.exists(train_file_path):
+            self.logger.error("Error moving train.json, train.json not found.")
+            return {"Error Code": 1188, "Message": "train.json not found."}
+        
+        try:
+            os.rename(train_file_path, os.path.join(archive_dir, f"train_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.json"))
+        except OSError as e:
+            self.logger.error(f"Error moving train.json: {e}")
+            #return {"Error Code": 1177, "Message": f"Failed to move train.json: {e}"}
