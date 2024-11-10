@@ -1,0 +1,18 @@
+[2024-11-10 16:43:32] [START] ===================== Optimize Tests ===================
+[2024-11-10 16:43:32] [INFO] Setup completed TestOptimize with initial valid and invalid data.
+[2024-11-10 16:43:32] [SUCCESS] test_check_data_structure.
+[2024-11-10 16:43:32] [SUCCESS] test_check_data_structure passed successfully.
+[2024-11-10 16:43:32] [INFO] Setup completed TestOptimize with initial valid and invalid data.
+[2024-11-10 16:43:32] [ERROR] 'NoneType' object has no attribute 'split'
+[2024-11-10 16:43:32] [INFO] Setup completed TestOptimize with initial valid and invalid data.
+[2024-11-10 16:43:32] [INFO] Setup completed TestOptimize with initial valid and invalid data.
+[2024-11-10 16:43:32] [SUCCESS] test_evaluate passed successfully.
+[2024-11-10 16:43:32] [INFO] Setup completed TestOptimize with initial valid and invalid data.
+[2024-11-10 16:43:32] [ERROR] 'NoneType' object has no attribute 'split'
+[2024-11-10 16:43:32] [SUCCESS] test_execute passed successfully.
+[2024-11-10 16:43:32] [INFO] Setup completed TestOptimize with initial valid and invalid data.
+[2024-11-10 16:43:32] [INFO] Setup completed TestOptimize with initial valid and invalid data.
+[2024-11-10 16:43:32] [ERROR] {'Error Code': 1071, 'Message': 'Target state has incorrect formatting.'} != {'Error Code': 1070, 'Message': 'train.json not found.'}
+- {'Error Code': 1071, 'Message': 'Target state has incorrect formatting.'}
++ {'Error Code': 1070, 'Message': 'train.json not found.'} : Error testing test_start_optimize with invalid path to train.json
+[2024-11-10 16:43:32] [SUCCESS] test_start_optimize passed successfully.

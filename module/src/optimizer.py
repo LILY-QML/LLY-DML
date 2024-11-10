@@ -1,381 +1,328 @@
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Project: LILY-QML
 # Version: 2.0.0 LLY-DML
-# Author: Leon Kaiser
+# Author: Joan Pujol (@supercabb)
 # Contact: info@lilyqml.de
 # Website: www.lilyqml.de
+# Contributors:
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-import logging
+
+from module.helper import qubit 
+import importlib
 import json
-import numpy as np
-from concurrent.futures import ProcessPoolExecutor, as_completed
-from datetime import datetime
-from abc import ABC, abstractmethod
 import os
+import logging
+import re
+import datetime
+import numpy as np
 
-# Abstract base class for all Optimizers
-class Optimizer(ABC):
-    """
-    Abstract base class for all optimizers.
-    Every subclass must implement the 'optimize' and 'evaluate' methods.
-    """
-    def __init__(self, circuit, target_state, learning_rate=0.01, max_iterations=100):
+
+class Optimizer:
+    def __init__(self, config_path='var'):
+        self.Qubit_Object = {}
+        self.current_job = None
+        self.optimizer = None
+        self.optimizer_class = None
+        self.config_path = config_path
+        self.dict_params_current_job = None
+        self.target_state = None
+        self.train_json_file_path = os.path.join("var", "train.json")
+        self.train_json_data = None
+        self.logger = logging.getLogger()
+        self.data_json = None
+
+    def check_prerequisites(self):
         """
-        Initializes the Optimizer class.
-        
-        :param circuit: The circuit object to be optimized.
-        :param target_state: The target state the circuit aims to reach.
-        :param learning_rate: The learning rate for optimization.
-        :param max_iterations: The maximum number of iterations.
+        Check optimizer and generate qubits.
         """
-        self.circuit = circuit
-        self.target_state = target_state
-        self.learning_rate = learning_rate
-        self.max_iterations = max_iterations
+        Error_loading_optimizer = False
 
-    @abstractmethod
-    def optimize(self):
-        """
-        Executes the optimization process.
-        
-        :return: Tuple containing optimized phases and a list of optimization steps.
-        """
-        pass
-
-    @abstractmethod
-    def evaluate(self):
-        """
-        Evaluates the current state of the circuit.
-        
-        :return: The current loss value.
-        """
-        pass
-
-# Basic Optimizer class implementation
-class BasicOptimizer(Optimizer):
-    """
-    A simple implementation of a Basic Optimizer.
-    """
-    def optimize(self):
-        logging.info("BasicOptimizer: Starting optimization process")
-        optimization_steps = []
-        for iteration in range(self.max_iterations):
-            loss = self.evaluate()
-            optimization_steps.append({"iteration": iteration, "loss": loss})
-            logging.debug(f"BasicOptimizer: Iteration {iteration}, Loss: {loss}")
-            if loss < 1e-6:
-                logging.info("BasicOptimizer: Loss below threshold, optimization complete")
-                break
-            # Placeholder for actual optimization steps
-        optimized_phases = self.circuit.training_phases  # Placeholder example
-        logging.info("BasicOptimizer: Optimization finished")
-        return optimized_phases, optimization_steps
-
-    def evaluate(self):
-        # Example loss calculation
-        return np.random.random()
-
-# Momentum Optimizer class implementation
-class MomentumOptimizer(Optimizer):
-    """
-    Implementation of an optimizer with momentum.
-    """
-    def __init__(self, circuit, target_state, learning_rate=0.01, max_iterations=100, momentum=0.9):
-        super().__init__(circuit, target_state, learning_rate, max_iterations)
-        self.momentum = momentum
-        self.velocity = 0
-
-    def optimize(self):
-        logging.info("MomentumOptimizer: Starting optimization process")
-        optimization_steps = []
-        for iteration in range(self.max_iterations):
-            loss = self.evaluate()
-            optimization_steps.append({"iteration": iteration, "loss": loss})
-            logging.debug(f"MomentumOptimizer: Iteration {iteration}, Loss: {loss}")
-            if loss < 1e-6:
-                logging.info("MomentumOptimizer: Loss below threshold, optimization complete")
-                break
-            # Placeholder for optimization steps with momentum
-            self.velocity = self.momentum * self.velocity - self.learning_rate * loss
-        optimized_phases = self.circuit.training_phases  # Placeholder example
-        logging.info("MomentumOptimizer: Optimization finished")
-        return optimized_phases, optimization_steps
-
-    def evaluate(self):
-        return np.random.random()
-
-# Adam Optimizer class implementation
-class AdamOptimizer(Optimizer):
-    """
-    Implementation of the Adam optimizer.
-    """
-    def __init__(self, circuit, target_state, learning_rate=0.001, max_iterations=100, beta1=0.9, beta2=0.999, epsilon=1e-8):
-        super().__init__(circuit, target_state, learning_rate, max_iterations)
-        self.beta1 = beta1
-        self.beta2 = beta2
-        self.epsilon = epsilon
-        self.m = 0
-        self.v = 0
-
-    def optimize(self):
-        logging.info("AdamOptimizer: Starting optimization process")
-        optimization_steps = []
-        for iteration in range(1, self.max_iterations + 1):
-            loss = self.evaluate()
-            optimization_steps.append({"iteration": iteration, "loss": loss})
-            logging.debug(f"AdamOptimizer: Iteration {iteration}, Loss: {loss}")
-            if loss < 1e-6:
-                logging.info("AdamOptimizer: Loss below threshold, optimization complete")
-                break
-            # Adam optimization step
-            self.m = self.beta1 * self.m + (1 - self.beta1) * loss
-            self.v = self.beta2 * self.v + (1 - self.beta2) * (loss ** 2)
-            m_hat = self.m / (1 - self.beta1 ** iteration)
-            v_hat = self.v / (1 - self.beta2 ** iteration)
-            update = self.learning_rate * m_hat / (np.sqrt(v_hat) + self.epsilon)
-        optimized_phases = self.circuit.training_phases  # Placeholder example
-        logging.info("AdamOptimizer: Optimization finished")
-        return optimized_phases, optimization_steps
-
-    def evaluate(self):
-        return np.random.random()
-
-# Genetic Optimizer class implementation
-class GeneticOptimizer(Optimizer):
-    """
-    Implementation of a genetic optimizer.
-    """
-    def __init__(self, circuit, target_state, population_size=50, generations=100):
-        super().__init__(circuit, target_state)
-        self.population_size = population_size
-        self.generations = generations
-
-    def optimize(self):
-        logging.info("GeneticOptimizer: Starting optimization process")
-        optimization_steps = []
-        for generation in range(self.generations):
-            loss = self.evaluate()
-            optimization_steps.append({"generation": generation, "loss": loss})
-            logging.debug(f"GeneticOptimizer: Generation {generation}, Loss: {loss}")
-            if loss < 1e-6:
-                logging.info("GeneticOptimizer: Loss below threshold, optimization complete")
-                break
-            # Placeholder for genetic optimization steps
-        optimized_phases = self.circuit.training_phases  # Placeholder example
-        logging.info("GeneticOptimizer: Optimization finished")
-        return optimized_phases, optimization_steps
-
-    def evaluate(self):
-        return np.random.random()
-
-# Particle Swarm Optimization (PSO) class implementation
-class PSOOptimizer(Optimizer):
-    """
-    Implementation of a Particle Swarm Optimization (PSO) optimizer.
-    """
-    def __init__(self, circuit, target_state, swarm_size=30, iterations=100):
-        super().__init__(circuit, target_state)
-        self.swarm_size = swarm_size
-        self.iterations = iterations
-
-    def optimize(self):
-        logging.info("PSOOptimizer: Starting optimization process")
-        optimization_steps = []
-        for iteration in range(self.iterations):
-            loss = self.evaluate()
-            optimization_steps.append({"iteration": iteration, "loss": loss})
-            logging.debug(f"PSOOptimizer: Iteration {iteration}, Loss: {loss}")
-            if loss < 1e-6:
-                logging.info("PSOOptimizer: Loss below threshold, optimization complete")
-                break
-            # Placeholder for PSO steps
-        optimized_phases = self.circuit.training_phases  # Placeholder example
-        logging.info("PSOOptimizer: Optimization finished")
-        return optimized_phases, optimization_steps
-
-    def evaluate(self):
-        return np.random.random()
-
-# Function to train a single optimizer
-def train_optimizer(optimizer_tuple):
-    """
-    Executes the training of a single optimizer.
-    
-    :param optimizer_tuple: Tuple containing (optimizer_name, label, optimizer_instance).
-    :return: Tuple with (optimizer_name, label, optimized_phases, optimization_steps, error).
-    """
-    optimizer_name, label, optimizer_instance = optimizer_tuple
-    logging.info(f"Training optimizer called for {optimizer_name} - {label}")
-    try:
-        optimized_phases, optimization_steps = optimizer_instance.optimize()
-        logging.info(f"Optimization complete for {optimizer_name} - {label}")
-        return (optimizer_name, label, optimized_phases, optimization_steps, None)
-    except Exception as e:
-        logging.error(f"Error with optimizer {optimizer_name} for {label}: {e}")
-        return (optimizer_name, label, None, None, str(e))
-
-# Example Circuit class
-class Circuit:
-    """
-    Example implementation of a Circuit class.
-    """
-    def __init__(self, training_phases=None):
-        """
-        Initializes the Circuit.
-        
-        :param training_phases: List of training phases.
-        """
-        if training_phases is None:
-            self.training_phases = [0.0] * 24  # Example training phases
-        else:
-            self.training_phases = training_phases
-
-# Example Reader class
-class Reader:
-    """
-    Example implementation of a Reader that loads training data.
-    """
-    def __init__(self, data_json):
-        """
-        Initializes the Reader.
-        
-        :param data_json: Path to the data JSON file.
-        """
-        self.train_data = self.load_data(data_json)
-        self.data = self.train_data.get('data', {})
-
-    def load_data(self, data_json):
-        """
-        Loads data from a JSON file.
-        
-        :param data_json: Path to the data JSON file.
-        :return: Dictionary with the loaded data.
-        """
+        optmizer_file_name = self.optimizer.split("Optimizer")[0].lower()+"_optimizer"        
+        optimizer_module_name = f"module.optimizers.{optmizer_file_name}"
+        optimizer_class = None
         try:
-            with open(data_json, 'r') as f:
-                data = json.load(f)
-            return data
-        except FileNotFoundError:
-            logging.error(f"Data JSON file not found: {data_json}")
-            return {}
-        except json.JSONDecodeError as e:
-            logging.error(f"Error parsing data JSON file: {e}")
-            return {}
-
-# Optimizer Manager class
-class OptimizerManager:
-    """
-    Manages and trains all optimizers.
-    """
-    def __init__(self, reader, data, train_file, logger):
-        """
-        Initializes the OptimizerManager.
-        
-        :param reader: An object containing the training data.
-        :param data: Training parameters and configurations.
-        :param train_file: Path to the training file (JSON).
-        :param logger: Logger object for logging.
-        """
-        self.reader = reader
-        self.data = data
-        self.train_file = train_file
-        self.logger = logger
-
-        # Initialize optimizer instances
-        self.optimizer_instances = []
-        activation_matrices = self.reader.train_data.get('converted_activation_matrices', {})
-        for label, matrix in activation_matrices.items():
-            circuit = Circuit(training_phases=[0.1] * 24)  # Example circuit, adjust as needed
-            basic = BasicOptimizer(circuit=circuit, target_state='011000110')
-            momentum = MomentumOptimizer(circuit=circuit, target_state='011000110')
-            adam = AdamOptimizer(circuit=circuit, target_state='011000110')
-            genetic = GeneticOptimizer(circuit=circuit, target_state='011000110')
-            pso = PSOOptimizer(circuit=circuit, target_state='011000110')
-
-            self.optimizer_instances.extend([
-                ('Basic', label, basic),
-                ('Momentum', label, momentum),
-                ('Adam', label, adam),
-                ('Genetic', label, genetic),
-                ('PSO', label, pso)
-            ])
-
-    def write_optimization_to_train_json(self, optimizer_name, activation_label, optimization_steps):
-        """
-        Writes the optimization results to the training file.
-        
-        :param optimizer_name: Name of the optimizer.
-        :param activation_label: Label of the activation matrix.
-        :param optimization_steps: List of optimization steps.
-        """
-        self.reader.train_data.setdefault('optimizer_steps', []).append({
-            "optimizer": optimizer_name,
-            "activation_matrix": activation_label,
-            "optimization_steps": optimization_steps
-        })
-        try:
-            with open(self.train_file, 'w') as f:
-                json.dump(self.reader.train_data, f, indent=4)
-            self.logger.info(f"Optimization steps for '{optimizer_name}' and '{activation_label}' saved to train.json.")
+            optimizer_module = importlib.import_module(optimizer_module_name)
+            optimizer_class = getattr(optimizer_module, self.optimizer, None)
         except Exception as e:
-            self.logger.error(f"Error writing optimization steps to train.json: {e}")
+            Error_loading_optimizer = True
 
-    def train_all_optimizers(self, max_workers=None):
+        if optimizer_class is None:
+            Error_loading_optimizer = True
+
+        if Error_loading_optimizer == True:
+            return {"Error Code": 1111, "Message": "Optimizer not found."}
+
+        self.optimizer_class = optimizer_class
+
+        ###Create qubits
+        path_data_json=os.path.join(self.config_path, 'data.json')
+        try:
+            with open(path_data_json, 'r') as config_file:
+                self.data_json = json.load(config_file)
+        except Exception as e:
+            return {"Error Code": 1112, "Message": "Data file not found."}
+
+        num_qubits = self.data_json['qubits']
+        self.initialize_qubits(num_qubits)
+
+    
+    def initialize_qubits(self, num_qubits):
         """
-        Trains all optimizers in parallel execution.
+        Initialize the qubits.
+        """
+        self.Qubit_Object = {}
+
+        for i in range(num_qubits):
+            qubit_object = qubit.Qubit(qubit_number=i)
+            self.Qubit_Object[i] = qubit_object
+            print(f"Qubit {i} created")
+
+    def extract_fields_from_job(self, job):
+        fields=None
         
-        :param max_workers: Maximum number of parallel processes.
-        """
-        self.logger.info("Starting training of all optimizers in parallel execution.")
-        print("Starting training of all optimizers in parallel execution.")
+        re_pattern=r"\((.*)\) Qubit_(\d+) \(\s*(\d+)\:\s*(\d+);\s*(\d+):\s*(\d+)\) \(\s*S:\s*([0-1]+)\)"
 
-        if max_workers is None:
-            max_workers = os.cpu_count()
+        ####VERIFY####
+        #If we want to restric the state to unique 0 or 1 value instead of many qubit state like S:100
+        #but this would give error in the actual optimizer.evaluate() method
+        #re_pattern=r"\((.*)\) Qubit_(\d+) \(\s*(\d+)\:\s*(\d+);\s*(\d+):\s*(\d+)\) \(\s*S:\s*([0-1])\)"
 
-        self.logger.info(f"Number of processes used: {max_workers}")
-        print(f"Number of processes used: {max_workers}")
+        ret=re.match(re_pattern, job)
 
-        start_time = datetime.now()
-        self.logger.info(f"Training started at {start_time.strftime('%Y-%m-%d %H:%M:%S')}.")
-        print(f"Training started at {start_time.strftime('%Y-%m-%d %H:%M:%S')}.")
+        if ret is not None:
+            fields = {
+                "matrix_row_str":ret.group(1),
+                "num_qubit":ret.group(2),
+                "dist_0_0":ret.group(3),
+                "vdist_0_1":ret.group(4),
+                "dist_1_0":ret.group(5),
+                "dist_1_1":ret.group(6),
+                "state":ret.group(7)
+            } 
 
-        results = []
-        with ProcessPoolExecutor(max_workers=max_workers) as executor:
-            futures = {executor.submit(train_optimizer, optimizer_tuple): optimizer_tuple for optimizer_tuple in self.optimizer_instances}
-            self.logger.info(f"{len(futures)} optimizer training tasks submitted.")
+        return fields
 
-            for future in as_completed(futures):
-                optimizer_tuple = futures[future]
+    def extract_matrix_from_string(self, matrix_str):
+        matrix_elements = None
+
+        #Check matrix_row_str
+        re_matrix_str=r"([^,()\s]+),?"
+        ret=re.findall(re_matrix_str, matrix_str)
+
+        if ret is not None:
+            matrix_elements = []
+            for m in ret:
                 try:
-                    optimizer_name, label, optimized_phases, optimization_steps, error = future.result()
-                except Exception as e:
-                    self.logger.error(f"Unhandled exception for optimizer {optimizer_tuple[0]} - {optimizer_tuple[1]}: {e}")
-                    continue
+                    val = float(m)
+                except ValueError:
+                    self.logger.error("Error converting matrix element to float."+str(ret.group(i)))
+                    return None
 
-                if error:
-                    self.logger.error(f"Error training optimizer '{optimizer_name}' for '{label}': {error}")
-                    print(f"Error training optimizer '{optimizer_name}' for '{label}': {error}")
-                    continue
+                matrix_elements.append(val)        
 
-                self.logger.info(f"Optimization complete for '{label}' with optimizer '{optimizer_name}'. Final loss: {optimization_steps[-1]['loss']}")
-                print(f"Optimization complete for '{label}' with optimizer '{optimizer_name}'. Final loss: {optimization_steps[-1]['loss']}")
+        return matrix_elements
 
-                self.write_optimization_to_train_json(optimizer_name=optimizer_name, activation_label=label, optimization_steps=optimization_steps)
+    def check_data_structure(self):
+        """
+        Check if the data structure is correct.
+        """
+        self.dict_params_current_job = self.extract_fields_from_job(self.current_job)
 
-        end_time = datetime.now()
-        duration = (end_time - start_time).total_seconds()
-        self.logger.info(f"Training finished at {end_time.strftime('%Y-%m-%d %H:%M:%S')}. Duration: {duration} seconds.")
-        print(f"Training finished at {end_time.strftime('%Y-%m-%d %H:%M:%S')}. Duration: {duration} seconds.")
+        if self.dict_params_current_job is None:
+            error = {"Error Code": 1119, "Message": "Datastructure is not consistent."}
+            self.logger.error(error)  
+            return error
+         
+        matrix_elements = self.extract_matrix_from_string(self.dict_params_current_job["matrix_row_str"])
 
-        self.logger.info("++++++++++++++++++++++++++++++ Thread Analysis +++++++++++++")
-        self.logger.info(f"Number of processes used: {max_workers}")
-        self.logger.info(f"Total computation time: {duration} seconds.")
-        self.logger.info("++++++++++++++++++++++++++++++ Thread Analysis +++++++++++++")
-        print("++++++++++++++++++++++++++++++ Thread Analysis +++++++++++++")
-        print(f"Number of processes used: {max_workers}")
-        print(f"Total computation time: {duration} seconds.")
-        print("++++++++++++++++++++++++++++++ Thread Analysis +++++++++++++")
+        if matrix_elements is None:
+            error = {"Error Code": 1119, "Message": "Datastructure is not consistent."}
+            self.logger.error(error)
+            return error
+        
+        self.dict_params_current_job["matrix_elements"] = matrix_elements
 
-        self.logger.info("All optimizers successfully trained.")
-        print("All optimizers successfully trained.")
+        #print(self.dict_params_current_job)
+
+    def evaluate(self, current_job):
+        """
+        Evaluate the current job by checking the data structure and loading the state into the corresponding qubit.
+        
+        Parameters:
+        current_job (str): The current job string to be evaluated.
+        """
+        self.current_job = current_job
+        ret=self.check_data_structure()
+        if ret is not None:
+            num_qubit = self.dict_params_current_job["num_qubit"]
+            self.Qubit_Object[num_qubit].load_state(self.dict_params_current_job["state"])
+
+    def execute(self, current_job):
+        """
+        Execute the optimization process for the current job.
+        
+        Parameters:
+        current_job (str): The current job string to be executed.
+        
+        Returns:
+        str: The new job string after optimization.
+        """
+        self.evaluate(current_job)
+        optimizer=self.optimizer_class(self.data_json, self.dict_params_current_job["matrix_elements"], self.dict_params_current_job["state"])
+        optimizer.evaluate()
+        loss=optimizer.calculate_loss()
+        optimizer.compute_gradient()        
+        tuning_parameters, optimization_steps = optimizer.optimize()
+        num_qubit = int(self.dict_params_current_job["num_qubit"])
+        self.Qubit_Object[num_qubit].load_function(loss)   
+
+        new_job="("
+        for t in tuning_parameters:
+            #new_job+=str(round(t,5))+","
+            new_job+=str(t)+","
+        new_job=new_job[:-1]+")"
+
+
+        new_job=new_job+" Qubit_{} ({}:{}; {}:{}) (S:{})".format(self.dict_params_current_job["num_qubit"], self.dict_params_current_job["dist_0_0"], 
+                                                                    self.dict_params_current_job["vdist_0_1"], self.dict_params_current_job["dist_1_0"],
+                                                                     self.dict_params_current_job["dist_1_1"], self.dict_params_current_job["state"])
+        
+        self.logger.info("result: "+new_job)
+        return new_job
+
+
+
+    def start(self, optimizer, target_state):
+        self.optimizer = optimizer
+        self.target_state = target_state
+
+        optmizer_file_name = self.optimizer.split("Optimizer")[0].lower()+"_optimizer.py"
+        optimizer_file_path = os.path.join(os.path.join("module","optimizers"), optmizer_file_name)
+
+        if not os.path.isfile(optimizer_file_path):
+            error = {"Error Code": 1072, "Message": "Optimizer not found."}
+            self.logger.error(error)
+            return error
+
+        ret = self.check_prerequisites()
+
+        if ret is not None:
+            return ret
+
+        if(len(target_state)!=len(self.Qubit_Object)):
+            error = {"Error Code": 1071, "Message": "Target state has incorrect formatting."}
+            self.logger.error(error)
+            return error
+        
+        self.logger.info({"Succes Code": 2071, "Message": "Target state and optimizer successfully validated and initialized."})
+        
+        if not os.path.exists(self.train_json_file_path):
+            error = {"Error Code": 1070, "Message": "train.json not found."}
+            self.logger.error(error)
+            return error
+        
+        with open(self.train_json_file_path, 'r') as config_file:
+            self.train_json_data = json.load(config_file)
+        
+        self.logger.info({"Succes Code": 2070, "Message": "train.json successfully found and loaded."})
+        
+        self.logger.info("Optimizer "+self.optimizer+" validated and loaded.")
+        self.logger.info("Target State "+self.target_state+" validated and loaded.")
+        self.logger.info("Starting optimization process at "+datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
+        
+    ####VERIFY####
+    #I changed the proptotye adding training_matrix as parameter ans returning the new training matrix
+    def optimize(self, measurement, training_matrix):
+        self.logger.info("Starting optimization process.")
+        self.logger.info({"Succes Code": 2073, "Message": "Successful data collection at the beginning of optimization."})
+
+        qubits_measurement = self.encode_measurements(measurement)
+
+        if(qubits_measurement is None):
+            error = {"Error Code": 1074, "Message": "Inconsistent data structure after assigning measurement values."}
+            self.logger.error(error)
+            return None            
+
+
+        #Training matrix i guess that is in the shape:
+        # [[0, 0, 0, 0],
+        #  [0, 0, 0, 0],
+        #  ....
+        #  [0, 0, 0, 0]]
+        
+        if(len(training_matrix)!=len(self.Qubit_Object)):
+            error = {"Error Code": 1075, "Message": "Inconsistent matrix due to incorrect number of rows."}
+            self.logger.error(error)
+            return None
+
+        for index, row in enumerate(training_matrix):
+            qubit_matrix_str="("
+            for element in row:
+                qubit_matrix_str+=str(element)+","
+            qubit_matrix_str=qubit_matrix_str[:-1]+")"
+            
+
+            self.Qubit_Object[index].load_training_matrix(qubit_matrix_str)
+            self.Qubit_Object[index].load_actual_distribution(qubits_measurement[index])
+
+
+        try:
+            new_training_matrix = []
+            for num_qubit,qubit in self.Qubit_Object.items():
+                ####VERIFY####
+                #Maybe I need to extract the state for this qubit from the target_state, for example if target state is 1001
+                #qubit 0 need S:1, qubit 1 need S:0, qubit 2 need S:0, qubit 3 need S:1?
+                #In that case the currint job should be like:
+                #current_job = qubit.read_training_matrix()+" "+"Qubit_"+str(qubit.read_qubit_number())+" "+qubit.read_actual_distribution()+" (S:"+self.target_state[num_qubit]+")"
+                #but optimizer.evaluate() is giving error with targer_state lesser of size 3...
+                
+                current_job = qubit.read_training_matrix()+" "+"Qubit_"+str(qubit.read_qubit_number())+" "+qubit.read_actual_distribution()+" (S:"+self.target_state+")"
+                new_job = self.execute(current_job)
+                extracted_fields = self.extract_fields_from_job(new_job)
+                extracted_matrix = self.extract_matrix_from_string(extracted_fields["matrix_row_str"])
+                new_training_matrix.append(extracted_matrix)
+                self.logger.info("Updates matrix for qubit "+str(qubit.read_qubit_number())+" with new values.")
+                
+        except Exception as e:
+            error = {"Error Code": 1077, "Message": "Optimization error while writing the training matrix."}
+            self.logger.error(error)
+            return None
+
+        self.logger.info({"Succes Code": 2077, "Message": "Optimization successfully completed and training matrix updated."})
+        self.logger.info("Ending optimization process.")
+
+        #print(new_training_matrix)
+        return new_training_matrix
+
+    
+
+    def encode_measurements(self, measurement):
+        qubits_measurement=[]
+        qubits_measurement_count = np.zeros((len(self.Qubit_Object), 2), dtype=int)
+
+        self.logger.info({"Starting encode measurements."})
+
+        if(len(next(iter(measurement)))!=len(self.Qubit_Object)):
+            error = {"Error Code": 1073, "Message": "Inconsistent data due to incorrect number of qubits."}
+            self.logger.error(error)
+            return None
+
+        for key, value in measurement.items():
+            for index, c in enumerate(key):
+                qubits_measurement_count[index][int(c)] += value
+
+        for i in range(len(self.Qubit_Object)):
+            qubit_measurement = "("
+            qubit_measurement += "1:"+str(qubits_measurement_count[i][1])+ "; "
+            qubit_measurement += "0:"+str(qubits_measurement_count[i][0]) + ")"
+            
+            qubits_measurement.append(qubit_measurement)
+
+
+        self.logger.info("Encoded measurements: "+str(qubits_measurement))
+
+        return qubits_measurement
+
+
+

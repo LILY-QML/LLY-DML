@@ -13,35 +13,35 @@ import os
 from datetime import datetime
 import tempfile
 
-from module.src.optimize import Optimizer  # Assuming the Optimize class is implemented in this path and in test is running as python3 -m module.test.optimize
+from module.src.optimizer import Optimizer  # Updated to match renamed optimizer module
 
 # Path to config.json file
-config_path =  os.path.join('var','config.json')
+config_path = os.path.join('var', 'config.json')
 
 # Function to log messages to a log file
 def log_message(message, level="INFO", error_code=None):
     try:
         print(message)
 
-        # Lade die Konfiguration aus config.json
+        # Load configuration from config.json
         with open(config_path, 'r') as config_file:
             config = json.load(config_file)
 
-        # Hole den Pfad der Logdatei aus der Konfiguration
+        # Get the log file path from the configuration
         log_file = config.get('log_file', 'default.log')
 
-        # Erstelle den vollständigen Pfad zur Logdatei im Ordner 'var'
+        # Create the full path to the log file in the 'var' folder
         log_path = os.path.join('var', log_file)
 
-        # Formatierung der Log-Einträge
+        # Format log entries
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_entry = f"[{timestamp}] [{level}] {message}"
 
-        # Wenn ein Fehlercode vorhanden ist, füge ihn hinzu
+        # Add error code if present
         if error_code:
             log_entry += f" [Error Code: {error_code}]"
 
-        # Schreibe die Nachricht in die Logdatei
+        # Write the message to the log file
         with open(log_path, 'a') as log:
             log.write(log_entry + '\n')
 
@@ -208,8 +208,6 @@ class TestOptimize(unittest.TestCase):
          self.assertEqual(result, None, "Error testing optimize with invalid training matrix")       
          result = optimizer.optimize(measurements, training_matrix_valid)
          self.assertIsNotNone(result, "Error testing optimize with valid training matrix")
-         
-
 
 if __name__ == '__main__':
     unittest.main()
