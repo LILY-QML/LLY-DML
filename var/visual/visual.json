@@ -1,0 +1,22 @@
+{
+    "trainingsdata": {
+      "show_selected": [],
+      "show_all": true
+    },
+    "Training": true,
+    "Test": false,
+    "training": {
+      "optimizer": {
+        "show_selected": [],
+        "show_all": true
+      },
+      "show_heatmaps_comparision": true,
+      "show_loss_function": true,
+      "accuracy_over_time": false
+    },
+    "sonstiges": {
+      "show_circuit_at_beginning": true,
+      "show_loss_functions_of_every_qubit": true
+    }
+  }
+  
