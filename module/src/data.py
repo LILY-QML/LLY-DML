@@ -54,16 +54,18 @@ class Data:
 
     def return_matrices(self):
         """
-        Returns the stored activation matrices, ensuring that they have correct properties.
+        Returns the stored activation matrices, ensuring they have the correct properties.
 
         :return: List of activation matrices if valid, otherwise an error code.
         """
         for matrix in self.activation_matrices:
             if 'name' not in matrix:
                 return "Error Code: 1030 - Activation matrix conversion unsuccessful"
-            rows, cols, pages = matrix['data'].shape
-            if rows != self.qubits or cols != self.depth * 3 or pages != 3:
+
+            # Use check_final_matrix to validate the shape of the matrix after conversion
+            if not self.check_final_matrix(matrix['data']):
                 return "Error Code: 1030 - Activation matrix conversion unsuccessful"
+
         return self.activation_matrices
 
     def convert_matrices(self):
@@ -99,38 +101,6 @@ class Data:
             if not self.check_final_matrix(matrix['data']):
                 return "Error Code: 1008 - Activation matrix does not meet required dimensions"
 
-    # def convert_matrices(self):
-    #     """
-    #     Converts activation matrices to a specific format by combining values from 3 pages.
-    #
-    #     :return: None if successful, error code if initial checks fail or if conversion fails.
-    #     """
-    #     for matrix in self.activation_matrices:
-    #         # Initial check to ensure matrix has the required properties
-    #         if 'name' not in matrix:
-    #             return "Error Code: 1031 - Activation matrix invalid before conversion"
-    #         if matrix['data'].shape[2] != 3:
-    #             return "Error Code: 1031 - Activation matrix invalid before conversion"
-    #         rows, cols, _ = matrix['data'].shape
-    #         if rows != self.qubits or cols != self.depth:
-    #             return "Error Code: 1031 - Activation matrix invalid before conversion"
-    #
-    #     # Conversion process
-    #     for i, matrix in enumerate(self.activation_matrices):
-    #         converted_matrix = np.zeros((self.qubits, self.depth, 3))
-    #         for q in range(self.qubits):
-    #             for d in range(self.depth):
-    #                 # Combine values from the 3 pages
-    #                 converted_matrix[q, d] = matrix['data'][q, d, :]
-    #         self.activation_matrices[i]['data'] = converted_matrix
-    #
-    #     # Validate the final matrices
-    #     for matrix in self.activation_matrices:
-    #         if 'name' not in matrix:
-    #             return "Error Code: 1008 - Activation matrix does not meet required dimensions"
-    #         if not self.check_final_matrix(matrix):
-    #             return "Error Code: 1008 - Activation matrix does not meet required dimensions"
-
     def check_final_matrix(self, matrix):
         """
         Checks if a matrix meets the final required dimensions.
@@ -144,21 +114,29 @@ class Data:
 
     def create_training_matrix(self):
         """
-        Creates a training matrix with randomized values between -2π and 2π.
+        Creates a training matrix with randomized values between -2π and 2π
+        and saves it independently under 'training_matrix' in train.json.
 
         :return: None if successful, error code if dimensions are invalid.
         """
         training_matrix = np.random.uniform(-2 * np.pi, 2 * np.pi, (self.qubits, self.depth * 3))
 
-        # Check if the created training matrix meets the required dimensions
-        if training_matrix.shape != (self.qubits, self.depth * 3):
-            return "Error Code: 1007 - Training matrix does not meet required dimensions"
-
-        # Validate the dimensions using check_final_matrix
+        # Check if the created training matrix meets the required dimensions using check_final_matrix
         if not self.check_final_matrix(training_matrix):
             return "Error Code: 1007 - Training matrix does not meet required dimensions"
 
+        # Load the existing train.json file or create a new dictionary if it doesn't exist
+        train_file_path = os.path.join(self.working_directory, 'train.json')
+        if os.path.exists(train_file_path):
+            with open(train_file_path, 'r') as f:
+                train_data = json.load(f)
+        else:
+            train_data = {}
+
+        # Save the training matrix independently under 'training_matrix'
+        train_data["training_matrix"] = training_matrix.tolist()
+
         # Save to train.json
-        with open(os.path.join(self.working_directory, 'train.json'), 'w') as f:
-            json.dump({"training_matrix": training_matrix.tolist()}, f)
+        with open(train_file_path, 'w') as f:
+            json.dump(train_data, f, indent=4)
 

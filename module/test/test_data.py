@@ -53,14 +53,33 @@ def test_get_data_success(temp_data):
 
 # Test for return_matrices
 def test_return_matrices_valid(temp_data):
+    # Initialize temp_data with a pre-conversion matrix shape (3, 4, 3)
     temp_data.activation_matrices = [
         {
             "name": "Matrix_1",
-            "data": np.zeros((3, 12, 3))  # 3 rows, 12 columns, 3 pages
+            "data": np.zeros((3, 4, 3))
         }
     ]
+
+    # Convert matrices to the expected 2D format
+    temp_data.convert_matrices()
+
+    # Get the converted matrices
     result = temp_data.return_matrices()
-    assert result == temp_data.activation_matrices
+
+    # Convert each numpy array in result to a list for comparison
+    for matrix in result:
+        matrix["data"] = matrix["data"].tolist()
+
+    # Define the expected result in 2D format with lists
+    expected_matrices = [
+        {
+            "name": "Matrix_1",
+            "data": np.zeros((3, 12)).tolist()  # Expected 2D structure after conversion
+        }
+    ]
+
+    assert result == expected_matrices, "The converted activation matrix does not match the expected structure."
 
 
 def test_return_matrices_invalid(temp_data):

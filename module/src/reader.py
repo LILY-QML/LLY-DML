@@ -11,6 +11,7 @@ import json
 import os
 from datetime import datetime
 import logging
+import shutil
 
 
 class Reader:
@@ -269,7 +270,7 @@ class Reader:
             error_msg = "Error: data.json is improperly formatted."
             self.logger.error(error_msg)
             return error_msg
-        
+
     def create_train_file(self):
         train_file_path = os.path.join(self.working_directory, 'train.json')
 
@@ -280,25 +281,41 @@ class Reader:
         current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         train_data = []
-        train_data.append({"creation:": current_datetime})
+        train_data.append({"creation": current_datetime})
 
         with open(train_file_path, 'w') as train_file:
             json.dump(train_data, train_file, indent=4)
 
+    import shutil
+
     def move_json_file(self):
-        
+        """
+        Moves the train.json file to an archive directory, renaming it with the current date and time.
+
+        :return: None if successful, or an error dictionary if something goes wrong.
+        """
         train_file_path = os.path.join(self.working_directory, 'train.json')
         archive_dir = os.path.join(self.working_directory, 'archive')
 
+        # Ensure the archive directory exists
         if not os.path.exists(archive_dir):
             os.makedirs(archive_dir)
 
+        # Check if train.json exists
         if not os.path.exists(train_file_path):
             self.logger.error("Error moving train.json, train.json not found.")
             return {"Error Code": 1188, "Message": "train.json not found."}
-        
+
         try:
-            os.rename(train_file_path, os.path.join(archive_dir, f"train_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.json"))
+            # Define archive path with timestamp to avoid name conflicts
+            archive_file_path = os.path.join(
+                archive_dir,
+                f"train_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.json"
+            )
+            # Use shutil.move to ensure the move operation completes properly
+            shutil.move(train_file_path, archive_file_path)
+            return None
         except OSError as e:
             self.logger.error(f"Error moving train.json: {e}")
-            #return {"Error Code": 1177, "Message": f"Failed to move train.json: {e}"}
+            return {"Error Code": 1177, "Message": f"Failed to move train.json: {e}"}
+
