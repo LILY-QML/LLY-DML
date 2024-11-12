@@ -1,3 +1,11 @@
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# Project: LILY-QML
+# Version: 2.0.0 LLY-DML
+# Author: Claudia Zendejas-Morales (@clausia)
+# Contact: info@lilyqml.de
+# Website: www.lilyqml.de
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 import os
 import tempfile
 import pytest
