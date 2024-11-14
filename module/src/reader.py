@@ -279,8 +279,7 @@ class Reader:
 
         current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        train_data = []
-        train_data.append({"creation:": current_datetime})
+        train_data = {"creation:": current_datetime}
 
         with open(train_file_path, 'w') as train_file:
             json.dump(train_data, train_file, indent=4)
