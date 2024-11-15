@@ -11,7 +11,7 @@ from qiskit import QuantumCircuit, transpile
 import copy
 
 class Circuit:
-    def __init__(self, qubits, depth, training_phases, activation_phases, shots):
+    def __init__(self, qubits, depth, training_phases, activation_phases, shots, aer_backend='aer_simulator'):
         """Initializes the Circuit class with qubits, depth, phase matrices, and number of shots."""
         self.qubits = qubits
         self.depth = depth
@@ -20,6 +20,7 @@ class Circuit:
         self.shots = shots  # Number of shots for simulation
         self.circuit = QuantumCircuit(qubits, qubits)  # Quantum circuit with qubits as both quantum and classical registers
         self.simulation_result = None  # Stores the simulation result
+        self.aer_backend = aer_backend # Aer backend for simulation
         self.initialize_gates()  # Initialize quantum gates
         self.measure()  # Add measurement to the circuit
 
@@ -63,7 +64,10 @@ class Circuit:
 
     def run(self):
         """Runs the quantum circuit simulation and returns the result."""
-        simulator = Aer.get_backend('aer_simulator')  # Use the Aer simulator backend
+        #print(Aer.backends())
+
+
+        simulator = Aer.get_backend(self.aer_backend)  # Use the Aer simulator backend
         compiled_circuit = transpile(self.circuit, simulator)  # Compile the quantum circuit for the simulator
 
         # Execute the compiled circuit on the simulator and store the result

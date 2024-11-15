@@ -76,7 +76,7 @@ class Optimizer:
         for i in range(num_qubits):
             qubit_object = qubit.Qubit(qubit_number=i)
             self.Qubit_Object[i] = qubit_object
-            print(f"Qubit {i} created")
+            #print(f"Qubit {i} created")
 
     def extract_fields_from_job(self, job):
         fields=None
@@ -174,6 +174,13 @@ class Optimizer:
         loss=optimizer.calculate_loss()
         optimizer.compute_gradient()        
         tuning_parameters, optimization_steps = optimizer.optimize()
+
+        ####The tuning_parameters should be a list of float values, with the len of matrix elements, so is the uptated matrix row
+        if len(tuning_parameters) != len(self.dict_params_current_job["matrix_elements"]):
+            error = {"Error Code": 1113, "Message": "Incorrect returned optimized matrix row!!"}
+            self.logger.error(error)
+            return None
+
         num_qubit = int(self.dict_params_current_job["num_qubit"])
         self.Qubit_Object[num_qubit].load_function(loss)   
 
@@ -250,6 +257,7 @@ class Optimizer:
         #  [0, 0, 0, 0],
         #  ....
         #  [0, 0, 0, 0]]
+        # the  self.qubits x shape is self.depth * 3 !!!
         
         if(len(training_matrix)!=len(self.Qubit_Object)):
             error = {"Error Code": 1075, "Message": "Inconsistent matrix due to incorrect number of rows."}
@@ -279,6 +287,12 @@ class Optimizer:
                 
                 current_job = qubit.read_training_matrix()+" "+"Qubit_"+str(qubit.read_qubit_number())+" "+qubit.read_actual_distribution()+" (S:"+self.target_state+")"
                 new_job = self.execute(current_job)
+
+                if new_job is None:
+                    error = {"Error Code": 1076, "Message": "Optimization error while executing the job."}
+                    self.logger.error(error)
+                    return None
+
                 extracted_fields = self.extract_fields_from_job(new_job)
                 extracted_matrix = self.extract_matrix_from_string(extracted_fields["matrix_row_str"])
                 new_training_matrix.append(extracted_matrix)
