@@ -130,6 +130,7 @@ def test_data_consistency_invalid_structure(temp_reader):
     result = temp_reader.dataConsistency()
     assert "Error: Incorrect structure in data.json" in result
 
+
 def test_create_train_file(temp_reader):
     result = temp_reader.create_train_file()
     assert result == None
@@ -137,17 +138,30 @@ def test_create_train_file(temp_reader):
     result = temp_reader.create_train_file()
     assert result == {"Error Code": 1199, "Message": "train.json already exists."}
 
+
 def test_move_json_file(temp_reader):
+    # Ensure train.json does not exist before testing
+    train_file_path = os.path.join(temp_reader.working_directory, 'train.json')
+    if os.path.exists(train_file_path):
+        os.remove(train_file_path)
 
-    if os.path.exists(os.path.join(temp_reader.working_directory, 'train.json')):
-        os.remove(os.path.join(temp_reader.working_directory, 'train.json'))
-
+    # Test case: train.json does not exist, should return error code 1188
     result = temp_reader.move_json_file()
     assert result == {"Error Code": 1188, "Message": "train.json not found."}
 
-    with open(os.path.join(temp_reader.working_directory, 'train.json'), 'w') as f:
+    # Test case: train.json exists, should move successfully and return None
+    with open(train_file_path, 'w') as f:
         f.write('test')
 
     result = temp_reader.move_json_file()
-    assert result == None
+    assert result is None
+
+    # Confirm that train.json no longer exists at the original location
+    assert not os.path.exists(train_file_path)
+
+    # Confirm that train.json exists in the archive with the renamed timestamp
+    archive_dir = os.path.join(temp_reader.working_directory, 'archive')
+    archive_files = os.listdir(archive_dir)
+    assert len(archive_files) == 1
+    assert archive_files[0].startswith("train_") and archive_files[0].endswith(".json")
 
