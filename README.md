@@ -1,4 +1,4 @@
-<div align="center">
+[LLY-DML-ENGLISH.pdf](https://github.com/user-attachments/files/18493197/LLY-DML-ENGLISH.pdf)<div align="center">
   <img src="https://github.com/user-attachments/assets/2b6d0eba-8297-4f34-8cf3-c9a261f9e17e" alt="LLY-DML Logo">
 </div>
 
@@ -6,8 +6,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Discussions](https://img.shields.io/github/discussions/LILY-QML/LLY-DML)](https://github.com/LILY-QML/LLY-DML/discussions)
 [![Wiki](https://img.shields.io/badge/Documentation-Wiki-blue)](https://github.com/LILY-QML/LLY-DML/wiki)
-
+[![Paper](https://img.shields.io/badge/LLY--DML%20Paper-PDF-blue)](https://github.com/user-attachments/files/18493198/LLY-DML-ENGLISH.pdf)
 ---
+
 
 # **LLY-DML: Differentiable Machine Learning**
 
