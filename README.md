@@ -80,6 +80,3 @@ We invite everyone to contribute to LLY-DML. Here's how you can help:
 ## **License**
 
 This project is licensed under the **MIT License**. See the [LICENSE](https://opensource.org/licenses/MIT) file for details.
-```
-
-Dieses Markdown ist klar strukturiert und bietet eine einfache Einführung sowie direkte Links zu den wichtigsten Ressourcen. 😊
