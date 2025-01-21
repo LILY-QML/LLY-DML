@@ -1,4 +1,3 @@
-[LLY-DML-ENGLISH.pdf](https://github.com/user-attachments/files/18493197/LLY-DML-ENGLISH.pdf)<div align="center">
   <img src="https://github.com/user-attachments/assets/2b6d0eba-8297-4f34-8cf3-c9a261f9e17e" alt="LLY-DML Logo">
 </div>
 
