@@ -5,6 +5,8 @@ if __name__ == "__main__":
     pytest.main([
         "module/test/test_data.py",
         "module/test/test_optimizer.py",
+        "module/test/test_all.py",
         "module/test/test_reader.py"
+
     ])
 list
