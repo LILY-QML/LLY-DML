@@ -28,28 +28,7 @@
 - 💬 **Discussions**: [GitHub Discussions](https://github.com/LILY-QML/LLY-DML/discussions)
 - 📧 **Contact**: [info@lilyqml.de](mailto:info@lilyqml.de)
 
----
 
-
-Hier ist die angepasste und vereinfachte **README.md**:
-
-```markdown
-<div align="center">
-  <img src="https://github.com/user-attachments/assets/2b6d0eba-8297-4f34-8cf3-c9a261f9e17e" alt="LLY-DML Logo">
-</div>
-
-[![Python](https://img.shields.io/pypi/pyversions/lly-dml.svg)](https://badge.fury.io/py/lly-dml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Discussions](https://img.shields.io/github/discussions/LILY-QML/LLY-DML)](https://github.com/LILY-QML/LLY-DML/discussions)
-[![Wiki](https://img.shields.io/badge/Documentation-Wiki-blue)](https://github.com/LILY-QML/LLY-DML/wiki)
-
----
-
-# **LLY-DML: Differentiable Machine Learning**
-
-**LLY-DML** is a core component of the [**LILY Project**](https://www.lilyqml.de), focusing on developing and optimizing quantum circuits with differentiable machine learning techniques. This project enables researchers and developers to experiment with quantum-enhanced models in a user-friendly and accessible environment.
-
----
 
 ## **How to Get Started**
 1. Clone the repository:
@@ -101,6 +80,3 @@ We invite everyone to contribute to LLY-DML. Here's how you can help:
 ## **License**
 
 This project is licensed under the **MIT License**. See the [LICENSE](https://opensource.org/licenses/MIT) file for details.
-```
-
-Dieses Markdown ist klar strukturiert und bietet eine einfache Einführung sowie direkte Links zu den wichtigsten Ressourcen. 😊
