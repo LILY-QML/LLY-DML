@@ -1,0 +1,68 @@
+name: Deploy release artifacts
+
+on:
+  push:
+    tags:
+      - '*'  # Der Workflow wird bei jedem Tag ausgelöst
+
+jobs:
+  build-core:
+    name: Build core artifacts
+    usesgit puk: ./.github/workflows/wheels-build.yml
+    with:
+      artifact-prefix: "LLY-DML-core-"
+      default-action: "skip"
+      wheels-tier-1: "build"  # Tier-1-Wheels bauen
+      sdist: "build"          # Source Distribution bauen
+
+  upload-core:
+    name: Deploy core artifacts
+    needs: ["build-core"]
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write
+    steps:
+      - name: Download core artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: 'LLY-DML-core-*'
+          merge-multiple: true
+          path: deploy
+      - name: Publish core artifacts to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: deploy
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+
+  build-others:
+    name: Build additional artifacts
+    needs: ["upload-core"]
+    uses: ./.github/workflows/wheels-build.yml
+    with:
+      artifact-prefix: "LLY-DML-others-"
+      default-action: "build"
+      wheels-tier-1: "skip"  # Tier-1-Wheels überspringen
+      sdist: "skip"          # Source Distribution überspringen
+
+  upload-others:
+    name: Deploy additional artifacts
+    needs: ["build-others"]
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write
+    steps:
+      - name: Download additional artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: 'LLY-DML-others-*'
+          merge-multiple: true
+          path: deploy
+      - name: Publish additional artifacts to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: deploy
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
