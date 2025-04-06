@@ -17,6 +17,9 @@
 
 ## **Features**
 - **Optimized Quantum Circuits**: Tools for creating and refining quantum algorithms using differentiable optimization techniques.
+- **Multiple Optimizers**: Various optimization algorithms (Adam, SGD, RMSProp, etc.) for different training scenarios.
+- **Cross-Training**: Training of multiple activation matrices with random selection for robust quantum state preparation.
+- **Automated Reporting**: Generates PDF reports with training results and performance metrics.
 - **Community Collaboration**: Open for contributions and discussions to improve and expand the platform.
 - **Seamless Integration**: Available through the [LILY QML platform](https://www.lilyqml.de), providing easy access to resources and tools.
 
@@ -40,9 +43,38 @@
    ```bash
    pip install -r requirements.txt
    ```
-3. Explore the examples in the repository to see how LLY-DML works.
+   For development and testing, also install the development dependencies:
+   ```bash
+   pip install -r requirements-dev.txt
+   ```
+3. Run the application:
+   ```bash
+   python dml/main.py
+   ```
+4. Run the tests:
+   ```bash
+   python dml/test.py
+   ```
 
 For more detailed instructions, refer to the [Wiki](https://github.com/LILY-QML/LLY-DML/wiki).
+
+## Models
+
+LLY-DML provides pre-built models in the `models` directory:
+
+### LLY-DML-M1
+
+A demonstration model for quantum state classification. This model takes input matrices and classifies them to specific quantum states using the DML framework.
+
+To use this model:
+
+```bash
+cd models/LLY-DML-M1
+python start.py train  # Train the model
+python start.py run    # Run the model with input matrices
+```
+
+See the [LLY-DML-M1 README](models/LLY-DML-M1/README.md) for more details.
 
 ---
 

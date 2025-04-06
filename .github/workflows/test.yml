@@ -2,9 +2,9 @@ name: Tests
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, dev ]
+    branches: [ main ]
   merge_group:
 
 concurrency:
@@ -13,13 +13,13 @@ concurrency:
 
 jobs:
   tests:
-    if: github.repository_owner == 'LILY-QML'
-    name: Tests on macOS-arm64-Python-${{ matrix.python-version }}
-    runs-on: macOS-14
+    name: Tests on Python-${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.13"]
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+        python-version: ["3.9", "3.10", "3.11"]
     steps:
       # Step 1: Check out the repository
       - uses: actions/checkout@v4
@@ -29,21 +29,23 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          architecture: arm64
 
       # Step 3: Install dependencies
-      - name: 'Install dependencies'
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -U -r requirements.txt
-          python -m pip install -U -r requirements-dev.txt
-          python -m pip install -e .
-      # Optional: Install optional dependencies
-      - name: 'Install optional dependencies'
-        run: python -m pip install -r requirements-optional.txt
-
+          python -m pip install -r requirements.txt
+          python -m pip install pytest pytest-cov
+      
       # Step 4: Run tests
-      - name: 'Run tests'
+      - name: Test with pytest
         run: |
-          stestr init || true  # Initialize stestr if not already done
-          stestr run
+          python -m pytest dml/module/test/ --cov=dml --cov-report=xml
+          
+      # Step 5: Upload coverage reports
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.xml
+          fail_ci_if_error: false

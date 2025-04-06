@@ -1,74 +1,40 @@
+# **LLY-DML GitHub Workflows**
 
-# **LLY-DML: Comprehensive CI/CD Integration**
+This directory contains the CI/CD configuration for the LLY-DML project, ensuring code quality, testing, and deployment automation.
 
-LLY-DML is a cutting-edge Quantum Machine Learning (QML) project designed to drive innovation in hybrid quantum-classical workflows. This repository leverages modern CI/CD pipelines to ensure the highest standards of quality, automation, and scalability. Below, you'll find an overview of the project, its workflows, and how to get started.
+## **Workflow Overview**
 
----
+### **Test Workflow (`test.yml`)**
+The main testing workflow ensures code functionality across different environments:
+- Runs on every push to `main` and on pull requests
+- Tests on multiple operating systems (Ubuntu, macOS, Windows)
+- Supports Python versions 3.9, 3.10, and 3.11
+- Generates coverage reports and uploads to Codecov
 
-## **Table of Contents**
-- [About the Project](#about-the-project)
-- [Key Features](#key-features)
-- [Workflows Overview](#workflows-overview)
-- [Getting Started](#getting-started)
-- [Development Guidelines](#development-guidelines)
-- [Contributing](#contributing)
-- [License](#license)
+### **Building Documentation**
+Documentation workflow is currently under development. It will:
+- Build documentation from project docstrings
+- Deploy to GitHub Pages
+- Update on every release and main branch push
 
----
+### **Package Distribution**
+Package distribution workflow is planned to automate:
+- Building Python wheels for multiple platforms
+- Publishing releases to PyPI
+- Versioning and tagging
 
-## **About the Project**
-LLY-DML aims to simplify and accelerate the development of quantum-enhanced machine learning models. By integrating robust CI/CD workflows, the repository ensures:
-- Streamlined development and testing processes.
-- Cross-platform compatibility for Python Wheels.
-- Automated documentation generation and deployment.
-- Advanced backward compatibility testing for serialized Quantum Circuits (QPY).
+## **Development Guidelines**
 
----
+When modifying workflows:
+1. Test changes locally when possible with tools like [`act`](https://github.com/nektos/act)
+2. Keep workflows modular and focused on specific tasks
+3. Avoid hard-coding credentials or sensitive information
+4. Update this README when adding or changing workflows
 
-## **Key Features**
-- **Comprehensive Testing**:
-  - Supports Python and Rust-based components.
-  - Ensures backward compatibility of QPY files.
-  - Automated unit, integration, and memory safety tests.
-- **Multi-Platform Builds**:
-  - Supports Linux, macOS, and Windows.
-  - ARM and x86_64 architecture compatibility.
-- **Automated Documentation**:
-  - Builds and deploys project documentation seamlessly.
-- **Optimized Release Process**:
-  - Builds and publishes Python artifacts (Wheels and sdist) to PyPI.
+## **Future Enhancements**
 
----
-
-## **Workflows Overview**
-The project includes the following GitHub Actions workflows:
-
-1. **`coverage.yml`**:
-   - Tracks test coverage for Python and Rust components.
-   - Combines coverage reports using `grcov` and `coverage.py`.
-
-2. **`docs_deploy.yml`**:
-   - Automates the build and deployment of project documentation.
-   - Ensures that updated documentation is always accessible.
-
-3. **`miri.yml`**:
-   - Runs memory safety checks on Rust code using Miri.
-   - Detects undefined behavior and ensures Rust component integrity.
-
-4. **`qpy.yml`**:
-   - Tests backward compatibility for QPY files.
-   - Validates serialized Quantum Circuits across multiple versions.
-
-5. **`test.yml`**:
-   - Runs comprehensive integration and unit tests.
-   - Verifies compatibility with Python versions 3.10 and 3.13.
-
-6. **`wheels-build.yml`**:
-   - Modular workflow for building Python Wheels.
-   - Configured for cross-platform builds, including ARM64 and x86_64.
-
-7. **`wheels.yml`**:
-   - Automates the full release cycle for Python artifacts.
-   - Uploads distributable Wheels and sdist to PyPI.
-
----
+We plan to add these workflows:
+- Integration testing with sample quantum circuits
+- Performance benchmarking
+- Security scanning
+- Automated dependency updates

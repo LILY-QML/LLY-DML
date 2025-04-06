@@ -1,0 +1,19 @@
+{
+    "model_name": "M1",
+    "description": "Multi-Matrix Optimierungsbeispiel für die LLY-DML Quantum Circuit Implementierung",
+    "qubits": 5,
+    "depth": 3,
+    "shots": 1024,
+    "optimizers": [
+        "Adam",
+        "SGD",
+        "Momentum",
+        "RMSprop",
+        "Adagrad",
+        "Nadam"
+    ],
+    "training": {
+        "iterations": 20,
+        "use_crosstraining": false
+    }
+}
