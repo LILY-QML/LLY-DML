@@ -1,0 +1,167 @@
+2025-04-06 23:20:36,443 - MultiMatrixDecoder - ERROR - Qiskit nicht gefunden. Bitte installieren Sie Qiskit mit 'pip install qiskit'.
+2025-04-06 23:20:44,957 - MultiMatrixDecoder - ERROR - Qiskit nicht gefunden. Bitte installieren Sie Qiskit mit 'pip install qiskit'.
+2025-04-06 23:21:20,447 - MultiMatrixDecoder - ERROR - Qiskit nicht gefunden. Bitte installieren Sie Qiskit mit 'pip install qiskit'.
+2025-04-06 23:21:40,279 - MultiMatrixDecoder - INFO - Simuliere Qiskit für Demonstrationszwecke
+2025-04-06 23:21:40,279 - MultiMatrixDecoder - INFO - ================================================================================
+2025-04-06 23:21:40,279 - MultiMatrixDecoder - INFO -    LLY-DML Multi-Matrix Decoder
+2025-04-06 23:21:40,279 - MultiMatrixDecoder - INFO - ================================================================================
+2025-04-06 23:21:40,279 - MultiMatrixDecoder - INFO - Konfiguration: 6 Qubits, 5 L-Gates pro Qubit, 6 Matrizen
+2025-04-06 23:21:40,286 - MultiMatrixDecoder - INFO - Eingabematrix 1 erstellt mit Form (6, 5, 3)
+2025-04-06 23:21:40,286 - MultiMatrixDecoder - INFO - Eingabematrix 2 erstellt mit Form (6, 5, 3)
+2025-04-06 23:21:40,286 - MultiMatrixDecoder - INFO - Eingabematrix 3 erstellt mit Form (6, 5, 3)
+2025-04-06 23:21:40,286 - MultiMatrixDecoder - INFO - Eingabematrix 4 erstellt mit Form (6, 5, 3)
+2025-04-06 23:21:40,286 - MultiMatrixDecoder - INFO - Eingabematrix 5 erstellt mit Form (6, 5, 3)
+2025-04-06 23:21:40,286 - MultiMatrixDecoder - INFO - Eingabematrix 6 erstellt mit Form (6, 5, 3)
+2025-04-06 23:21:40,286 - MultiMatrixDecoder - INFO - Bestimme Zielzustände für jede Matrix
+2025-04-06 23:21:40,287 - MultiMatrixDecoder - INFO - Zustand '000001' mit Wahrscheinlichkeit 0.4060 zugewiesen
+2025-04-06 23:21:40,287 - MultiMatrixDecoder - INFO - Zustand '000101' mit Wahrscheinlichkeit 0.1414 zugewiesen
+2025-04-06 23:21:40,287 - MultiMatrixDecoder - INFO - Zustand '000111' mit Wahrscheinlichkeit 0.1240 zugewiesen
+2025-04-06 23:21:40,287 - MultiMatrixDecoder - INFO - Zustand '000010' mit Wahrscheinlichkeit 0.1228 zugewiesen
+2025-04-06 23:21:40,287 - MultiMatrixDecoder - INFO - Zustand '000011' mit Wahrscheinlichkeit 0.0933 zugewiesen
+2025-04-06 23:21:40,287 - MultiMatrixDecoder - INFO - Zustand '000000' mit Wahrscheinlichkeit 0.0876 zugewiesen
+2025-04-06 23:21:40,287 - MultiMatrixDecoder - INFO - Zustandszuweisungen:
+2025-04-06 23:21:40,287 - MultiMatrixDecoder - INFO - Matrix 1: Zustand '000001' (Initial: 0.4060)
+2025-04-06 23:21:40,287 - MultiMatrixDecoder - INFO - Matrix 2: Zustand '000101' (Initial: 0.1414)
+2025-04-06 23:21:40,287 - MultiMatrixDecoder - INFO - Matrix 3: Zustand '000111' (Initial: 0.1240)
+2025-04-06 23:21:40,287 - MultiMatrixDecoder - INFO - Matrix 4: Zustand '000010' (Initial: 0.1228)
+2025-04-06 23:21:40,287 - MultiMatrixDecoder - INFO - Matrix 5: Zustand '000011' (Initial: 0.0933)
+2025-04-06 23:21:40,287 - MultiMatrixDecoder - INFO - Matrix 6: Zustand '000000' (Initial: 0.0876)
+2025-04-06 23:21:40,287 - MultiMatrixDecoder - INFO - 
+==================================================
+2025-04-06 23:21:40,287 - MultiMatrixDecoder - INFO - Starte Optimierung für Matrix 1 mit Zielzustand '000001'
+2025-04-06 23:21:40,287 - MultiMatrixDecoder - INFO - Starte Optimierung für Zielzustand '000001'
+2025-04-06 23:21:40,287 - MultiMatrixDecoder - INFO - Iteration 0: Wahrscheinlichkeit für Zustand '000001': 0.4053
+2025-04-06 23:21:40,659 - MultiMatrixDecoder - INFO - Iteration 100: Wahrscheinlichkeit für Zustand '000001': 0.4053
+2025-04-06 23:21:40,663 - MultiMatrixDecoder - INFO - Konvergenz erreicht nach 101 Iterationen. Finale Wahrscheinlichkeit: 0.4053
+2025-04-06 23:21:40,663 - MultiMatrixDecoder - INFO - Optimierung abgeschlossen. Finale Wahrscheinlichkeit für Zustand '000001': 0.4060
+2025-04-06 23:21:40,663 - MultiMatrixDecoder - INFO - Matrix 1: Optimierung nach 101 Iterationen abgeschlossen
+2025-04-06 23:21:40,663 - MultiMatrixDecoder - INFO - 
+==================================================
+2025-04-06 23:21:40,663 - MultiMatrixDecoder - INFO - Starte Optimierung für Matrix 2 mit Zielzustand '000101'
+2025-04-06 23:21:40,663 - MultiMatrixDecoder - INFO - Starte Optimierung für Zielzustand '000101'
+2025-04-06 23:21:40,663 - MultiMatrixDecoder - INFO - Iteration 0: Wahrscheinlichkeit für Zustand '000101': 0.1406
+2025-04-06 23:21:41,031 - MultiMatrixDecoder - INFO - Iteration 100: Wahrscheinlichkeit für Zustand '000101': 0.1406
+2025-04-06 23:21:41,035 - MultiMatrixDecoder - INFO - Konvergenz erreicht nach 101 Iterationen. Finale Wahrscheinlichkeit: 0.1406
+2025-04-06 23:21:41,035 - MultiMatrixDecoder - INFO - Optimierung abgeschlossen. Finale Wahrscheinlichkeit für Zustand '000101': 0.1414
+2025-04-06 23:21:41,035 - MultiMatrixDecoder - INFO - Matrix 2: Optimierung nach 101 Iterationen abgeschlossen
+2025-04-06 23:21:41,035 - MultiMatrixDecoder - INFO - 
+==================================================
+2025-04-06 23:21:41,035 - MultiMatrixDecoder - INFO - Starte Optimierung für Matrix 3 mit Zielzustand '000111'
+2025-04-06 23:21:41,035 - MultiMatrixDecoder - INFO - Starte Optimierung für Zielzustand '000111'
+2025-04-06 23:21:41,035 - MultiMatrixDecoder - INFO - Iteration 0: Wahrscheinlichkeit für Zustand '000111': 0.1240
+2025-04-06 23:21:41,403 - MultiMatrixDecoder - INFO - Iteration 100: Wahrscheinlichkeit für Zustand '000111': 0.1240
+2025-04-06 23:21:41,407 - MultiMatrixDecoder - INFO - Konvergenz erreicht nach 101 Iterationen. Finale Wahrscheinlichkeit: 0.1240
+2025-04-06 23:21:41,407 - MultiMatrixDecoder - INFO - Optimierung abgeschlossen. Finale Wahrscheinlichkeit für Zustand '000111': 0.1240
+2025-04-06 23:21:41,407 - MultiMatrixDecoder - INFO - Matrix 3: Optimierung nach 101 Iterationen abgeschlossen
+2025-04-06 23:21:41,407 - MultiMatrixDecoder - INFO - 
+==================================================
+2025-04-06 23:21:41,407 - MultiMatrixDecoder - INFO - Starte Optimierung für Matrix 4 mit Zielzustand '000010'
+2025-04-06 23:21:41,407 - MultiMatrixDecoder - INFO - Starte Optimierung für Zielzustand '000010'
+2025-04-06 23:21:41,407 - MultiMatrixDecoder - INFO - Iteration 0: Wahrscheinlichkeit für Zustand '000010': 0.1221
+2025-04-06 23:21:41,776 - MultiMatrixDecoder - INFO - Iteration 100: Wahrscheinlichkeit für Zustand '000010': 0.1221
+2025-04-06 23:21:41,780 - MultiMatrixDecoder - INFO - Konvergenz erreicht nach 101 Iterationen. Finale Wahrscheinlichkeit: 0.1221
+2025-04-06 23:21:41,780 - MultiMatrixDecoder - INFO - Optimierung abgeschlossen. Finale Wahrscheinlichkeit für Zustand '000010': 0.1228
+2025-04-06 23:21:41,780 - MultiMatrixDecoder - INFO - Matrix 4: Optimierung nach 101 Iterationen abgeschlossen
+2025-04-06 23:21:41,780 - MultiMatrixDecoder - INFO - 
+==================================================
+2025-04-06 23:21:41,780 - MultiMatrixDecoder - INFO - Starte Optimierung für Matrix 5 mit Zielzustand '000011'
+2025-04-06 23:21:41,780 - MultiMatrixDecoder - INFO - Starte Optimierung für Zielzustand '000011'
+2025-04-06 23:21:41,780 - MultiMatrixDecoder - INFO - Iteration 0: Wahrscheinlichkeit für Zustand '000011': 0.0928
+2025-04-06 23:21:42,148 - MultiMatrixDecoder - INFO - Iteration 100: Wahrscheinlichkeit für Zustand '000011': 0.0928
+2025-04-06 23:21:42,152 - MultiMatrixDecoder - INFO - Konvergenz erreicht nach 101 Iterationen. Finale Wahrscheinlichkeit: 0.0928
+2025-04-06 23:21:42,152 - MultiMatrixDecoder - INFO - Optimierung abgeschlossen. Finale Wahrscheinlichkeit für Zustand '000011': 0.0933
+2025-04-06 23:21:42,152 - MultiMatrixDecoder - INFO - Matrix 5: Optimierung nach 101 Iterationen abgeschlossen
+2025-04-06 23:21:42,152 - MultiMatrixDecoder - INFO - 
+==================================================
+2025-04-06 23:21:42,152 - MultiMatrixDecoder - INFO - Starte Optimierung für Matrix 6 mit Zielzustand '000000'
+2025-04-06 23:21:42,152 - MultiMatrixDecoder - INFO - Starte Optimierung für Zielzustand '000000'
+2025-04-06 23:21:42,152 - MultiMatrixDecoder - INFO - Iteration 0: Wahrscheinlichkeit für Zustand '000000': 0.0918
+2025-04-06 23:21:42,539 - MultiMatrixDecoder - INFO - Iteration 100: Wahrscheinlichkeit für Zustand '000000': 0.0918
+2025-04-06 23:21:42,542 - MultiMatrixDecoder - INFO - Konvergenz erreicht nach 101 Iterationen. Finale Wahrscheinlichkeit: 0.0918
+2025-04-06 23:21:42,542 - MultiMatrixDecoder - INFO - Optimierung abgeschlossen. Finale Wahrscheinlichkeit für Zustand '000000': 0.0876
+2025-04-06 23:21:42,542 - MultiMatrixDecoder - INFO - Matrix 6: Optimierung nach 101 Iterationen abgeschlossen
+2025-04-06 23:21:42,543 - MultiMatrixDecoder - INFO - Matrix 1: Finale Wahrscheinlichkeit für Zustand '000001': 0.4060
+2025-04-06 23:21:42,543 - MultiMatrixDecoder - INFO - Matrix 2: Finale Wahrscheinlichkeit für Zustand '000101': 0.1415
+2025-04-06 23:21:42,543 - MultiMatrixDecoder - INFO - Matrix 3: Finale Wahrscheinlichkeit für Zustand '000111': 0.1240
+2025-04-06 23:21:42,543 - MultiMatrixDecoder - INFO - Matrix 4: Finale Wahrscheinlichkeit für Zustand '000010': 0.1228
+2025-04-06 23:21:42,543 - MultiMatrixDecoder - INFO - Matrix 5: Finale Wahrscheinlichkeit für Zustand '000011': 0.0933
+2025-04-06 23:21:42,543 - MultiMatrixDecoder - INFO - Matrix 6: Finale Wahrscheinlichkeit für Zustand '000000': 0.0874
+2025-04-06 23:21:43,021 - MultiMatrixDecoder - ERROR - Unerwarteter Fehler: 
+paragraph text '<para><img alt="Trainingsfortschritt" src="trainingsfortschritt.png" /></para>' caused exception paraparser: syntax error: invalid attribute name alt attrMap=['height', 'src', 'valign', 'width']
+Traceback (most recent call last):
+  File "/opt/homebrew/lib/python3.13/site-packages/reportlab/platypus/paraparser.py", line 3217, in parse
+    self.feed(text)
+    ~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/html/parser.py", line 111, in feed
+    self.goahead(0)
+    ~~~~~~~~~~~~^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/html/parser.py", line 171, in goahead
+    k = self.parse_starttag(i)
+  File "/opt/homebrew/Cellar/python@3.13/3.13.1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/html/parser.py", line 336, in parse_starttag
+    self.handle_startendtag(tag, attrs)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/html/parser.py", line 420, in handle_startendtag
+    self.handle_starttag(tag, attrs)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.13/site-packages/reportlab/platypus/paraparser.py", line 3240, in handle_starttag
+    start(attrs or {})
+    ~~~~~^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.13/site-packages/reportlab/platypus/paraparser.py", line 2705, in start_img
+    A = self.getAttributes(attributes,_imgAttrMap)
+  File "/opt/homebrew/lib/python3.13/site-packages/reportlab/platypus/paraparser.py", line 3080, in getAttributes
+    self._syntax_error('invalid attribute name %s attrMap=%r'% (k,list(sorted(attrMap.keys()))))
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.13/site-packages/reportlab/platypus/paraparser.py", line 2779, in _syntax_error
+    raise ValueError('paraparser: syntax error: %s' % message)
+ValueError: paraparser: syntax error: invalid attribute name alt attrMap=['height', 'src', 'valign', 'width']
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/leonkaiser/Desktop/LAB/LLY-DML/models/LLY-DML-M1/multi_matrix_decoder.py", line 834, in <module>
+    results = run_multi_matrix_decoder()
+  File "/Users/leonkaiser/Desktop/LAB/LLY-DML/models/LLY-DML-M1/multi_matrix_decoder.py", line 814, in run_multi_matrix_decoder
+    pdf_path = generate_report(results, report_path)
+  File "/Users/leonkaiser/Desktop/LAB/LLY-DML/models/LLY-DML-M1/multi_matrix_decoder.py", line 556, in generate_report
+    elements.append(Paragraph(p_text, styleN))
+                    ~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.13/site-packages/reportlab/platypus/paragraph.py", line 1814, in __init__
+    self._setup(text, style, bulletText or getattr(style,'bulletText',None), frags, cleanBlockQuotedText)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.13/site-packages/reportlab/platypus/paragraph.py", line 1835, in _setup
+    style, frags, bulletTextFrags = _parser.parse(text,style)
+                                    ~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.13/site-packages/reportlab/platypus/paraparser.py", line 3219, in parse
+    annotateException('\nparagraph text %s caused exception' % ascii(text))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.13/site-packages/reportlab/lib/utils.py", line 1176, in annotateException
+    rl_reraise(t,t(sep.join((_ for _ in (msg,str(v),postMsg) if _))),b)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.13/site-packages/reportlab/lib/utils.py", line 138, in rl_reraise
+    raise v.with_traceback(b)
+  File "/opt/homebrew/lib/python3.13/site-packages/reportlab/platypus/paraparser.py", line 3217, in parse
+    self.feed(text)
+    ~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/html/parser.py", line 111, in feed
+    self.goahead(0)
+    ~~~~~~~~~~~~^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/html/parser.py", line 171, in goahead
+    k = self.parse_starttag(i)
+  File "/opt/homebrew/Cellar/python@3.13/3.13.1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/html/parser.py", line 336, in parse_starttag
+    self.handle_startendtag(tag, attrs)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/html/parser.py", line 420, in handle_startendtag
+    self.handle_starttag(tag, attrs)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.13/site-packages/reportlab/platypus/paraparser.py", line 3240, in handle_starttag
+    start(attrs or {})
+    ~~~~~^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.13/site-packages/reportlab/platypus/paraparser.py", line 2705, in start_img
+    A = self.getAttributes(attributes,_imgAttrMap)
+  File "/opt/homebrew/lib/python3.13/site-packages/reportlab/platypus/paraparser.py", line 3080, in getAttributes
+    self._syntax_error('invalid attribute name %s attrMap=%r'% (k,list(sorted(attrMap.keys()))))
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.13/site-packages/reportlab/platypus/paraparser.py", line 2779, in _syntax_error
+    raise ValueError('paraparser: syntax error: %s' % message)
+ValueError: 
+paragraph text '<para><img alt="Trainingsfortschritt" src="trainingsfortschritt.png" /></para>' caused exception paraparser: syntax error: invalid attribute name alt attrMap=['height', 'src', 'valign', 'width']
