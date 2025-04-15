@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Discussions](https://img.shields.io/github/discussions/LILY-QML/LLY-DML)](https://github.com/LILY-QML/LLY-DML/discussions)
 [![Wiki](https://img.shields.io/badge/Documentation-Wiki-blue)](https://github.com/LILY-QML/LLY-DML/wiki)
-[![Paper](https://img.shields.io/badge/LLY--DML%20Paper-PDF-blue)](https://github.com/user-attachments/files/18493198/LLY-DML-ENGLISH.pdf)
+[![Paper](https://img.shields.io/badge/LLY--DML%20Paper-PDF-blue)]()
 ---
 
 
